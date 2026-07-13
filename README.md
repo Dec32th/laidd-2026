@@ -44,23 +44,6 @@
 | 개발 환경 | Google Colab (Python) |
 | 언어 | Python 3.x |
 
-## 리포지토리 구조
-
-> 실제 폴더 구성에 맞춰 아래 트리를 수정해 주세요. 우선 예상되는 구조로 초안을 작성했습니다.
-
-```
-.
-├── data/                  # Tox21 원본 및 전처리 데이터
-├── notebooks/             # Colab 실험 노트북 (EDA, 모델 학습, 루프 테스트)
-├── src/
-│   ├── tox_predictor/     # 독성 예측 모델 관련 코드
-│   ├── mol_optimizer/     # RDKit 기반 구조 개선 로직 (FilterCatalog, 치환 규칙)
-│   └── pipeline.py        # 예측→수정→재평가 루프 실행 스크립트
-├── results/               # 실험 결과, 개선 전/후 화합물 비교
-├── laidd-notes/           # 2026년 LAIDD 강의 수강 기록 (강의별 정리)
-├── requirements.txt
-└── README.md
-```
 
 ## 학습 및 개발 로드맵 (예선 마감 8/7까지)
 
