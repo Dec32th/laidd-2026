@@ -31,6 +31,7 @@ def load_tox21_clean(test_size=0.3, valid_ratio=0.5, random_state=42):
     y = df_clean[task_cols].fillna(0).values.astype(np.float32)
     w = (~df_clean[task_cols].isna()).values.astype(np.float32)
     X = np.stack(df_clean['smiles'].apply(_smiles_to_ecfp).values)
+    smiles_arr = df_clean['smiles'].values
 
     indices = np.arange(len(X))
     train_idx, temp_idx = train_test_split(indices, test_size=test_size, random_state=random_state)
@@ -38,8 +39,11 @@ def load_tox21_clean(test_size=0.3, valid_ratio=0.5, random_state=42):
 
     return {
         'X_train': X[train_idx], 'y_train': y[train_idx], 'w_train': w[train_idx],
+        'smiles_train': smiles_arr[train_idx],
         'X_valid': X[valid_idx], 'y_valid': y[valid_idx], 'w_valid': w[valid_idx],
+        'smiles_valid': smiles_arr[valid_idx],
         'X_test': X[test_idx], 'y_test': y[test_idx], 'w_test': w[test_idx],
+        'smiles_test': smiles_arr[test_idx],
         'task_cols': task_cols,
         'invalid_smiles': invalid_smiles,
     }
