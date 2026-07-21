@@ -41,6 +41,24 @@ REPLACEMENT_LIBRARY = {
              "rationale": "고반응성 아실할라이드를 안정적인 아마이드로 대체"},
         ],
     },
+    "alkyl_halide": {
+        "problem_smarts": "[Cl,Br,I]",
+        "candidates": [
+            {"smiles": "O", "name": "hydroxyl (alcohol)",
+             "rationale": "이탈기를 제거해 알킬화 반응성을 없앰, 극성은 유사하게 유지"},
+            {"smiles": "F", "name": "fluorine",
+             "rationale": "할로겐을 유지하되 C-F 결합은 강해 이탈기로 작용하지 않음, 입체적 크기도 유사"},
+        ],
+    },
+    "aniline": {
+        "problem_smarts": "[NH2][c]",
+        "candidates": [
+            {"smiles": "C(=O)N", "name": "acetamide (acylated amine)",
+             "rationale": "1차 방향족 아민을 아마이드로 아실화하여 N-hydroxylation 경로 자체를 차단"},
+            {"smiles": "F", "name": "fluorine",
+             "rationale": "반응성 아민을 제거하면서 전자끄는기로 고리 전자밀도 보정"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
