@@ -4,8 +4,6 @@ from src.tools.replacement_library import get_replacement_candidates
 
 
 def find_core_and_target(smiles: str, rule_name: str):
-    """분자에서 rule_name에 해당하는 문제구조를 담은 조각(target)과
-    나머지 뼈대(core)를 찾아서 반환. 못 찾으면 None."""
     info = get_replacement_candidates(rule_name)
     if info is None:
         return None
@@ -39,7 +37,6 @@ def find_core_and_target(smiles: str, rule_name: str):
 
 
 def reassemble_molecule(core_smiles: str, rule_name: str, candidate_idx: int = 0):
-    """core의 [*:1] 자리에 replacement_library의 candidate를 붙여 새 분자를 완성."""
     info = get_replacement_candidates(rule_name)
     if info is None or candidate_idx >= len(info['candidates']):
         return None
@@ -67,7 +64,6 @@ def reassemble_molecule(core_smiles: str, rule_name: str, candidate_idx: int = 0
 
 
 def propose_fix(smiles: str, rule_name: str, candidate_idx: int = 0):
-    """전체 파이프라인: 문제구조 위치 찾기 -> 치환 후보로 재조립까지 한번에 실행."""
     located = find_core_and_target(smiles, rule_name)
     if located is None:
         return None
@@ -75,21 +71,23 @@ def propose_fix(smiles: str, rule_name: str, candidate_idx: int = 0):
 
 
 def canonicalize(smiles: str):
-    """SMILES를 canonical(정규) 형태로 변환. 파싱 실패 시 None."""
     mol = Chem.MolFromSmiles(smiles)
     return Chem.MolToSmiles(mol) if mol else None
 
 
-def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0):
-    """진단->치환->재평가를 반복. 성공/실패/순환/미지의 규칙 등으로 종료."""
+def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
+                        llm_client=None, llm_model=None):
+    """진단->치환->재평가를 반복. llm_client가 주어지면 여러 문제 중
+    어떤 걸 고칠지 LLM이 판단, 없으면 리스트 순서(규칙 기반)로 처리."""
+    from src.tools.toxicophore_detector import detect_toxicophores
+    from src.tools.agent import ask_llm_which_problem_to_fix
+
     current = canonicalize(smiles)
     seen = {current}
     history = [{"step": 0, "smiles": current}]
     skipped_rules = []
 
     for step in range(1, max_iterations + 1):
-        # 순환참조 방지를 위해 여기서 import (같은 파일 내 함수는 아래에서 직접 씀)
-        from src.tools.toxicophore_detector import detect_toxicophores
         problems = detect_toxicophores(current)
         history[-1]["problems"] = problems
 
@@ -106,7 +104,14 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         if not known_problems:
             return {"status": "no_known_fix", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
 
-        target_rule = known_problems[0]['rule_name']
+        if llm_client is not None:
+            decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems)
+            target_rule = decision['rule_name']
+            decision_reason = decision.get('reason', '')
+        else:
+            target_rule = known_problems[0]['rule_name']
+            decision_reason = "규칙 기반(리스트 순서대로)"
+
         fixed = propose_fix(current, target_rule, candidate_idx)
 
         if fixed is None or not fixed['is_valid']:
@@ -123,6 +128,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             "step": step,
             "smiles": current,
             "fixed_rule": target_rule,
+            "decision_reason": decision_reason,
             "candidate_used": fixed['candidate_used'],
         })
 
