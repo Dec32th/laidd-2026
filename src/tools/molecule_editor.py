@@ -4,6 +4,9 @@ from src.tools.replacement_library import get_replacement_candidates
 
 
 def find_core_and_target(smiles: str, rule_name: str):
+    """분자에서 rule_name에 해당하는 문제구조를 담은 조각(target)과
+    나머지 뼈대(core)를 찾아서 반환. 패턴 크기와 정확히 일치하는 조각만 인정.
+    못 찾으면 None (차선책으로 얼버무리지 않음)."""
     info = get_replacement_candidates(rule_name)
     if info is None:
         return None
@@ -17,7 +20,6 @@ def find_core_and_target(smiles: str, rule_name: str):
 
     fragments = rdMMPA.FragmentMol(mol, maxCuts=1, resultsAsMols=False)
 
-    best_match = None
     for core, chain in fragments:
         if core:
             continue
@@ -31,9 +33,7 @@ def find_core_and_target(smiles: str, rule_name: str):
             frag_heavy_atoms = part_mol.GetNumHeavyAtoms()
             if frag_heavy_atoms == pattern_size:
                 return {"core": parts[1 - i], "target_removed": part}
-            if best_match is None:
-                best_match = {"core": parts[1 - i], "target_removed": part}
-    return best_match
+    return None
 
 
 def reassemble_molecule(core_smiles: str, rule_name: str, candidate_idx: int = 0):
@@ -77,10 +77,11 @@ def canonicalize(smiles: str):
 
 def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
                         llm_client=None, llm_model=None):
-    """진단->치환->재평가를 반복. llm_client가 주어지면 여러 문제 중
-    어떤 걸 고칠지 LLM이 판단, 없으면 리스트 순서(규칙 기반)로 처리."""
+    """진단->치환->재평가를 반복.
+    llm_client가 주어지면: 어떤 문제부터 고칠지 + 어떤 후보를 쓸지 둘 다 LLM이 판단.
+    없으면: 리스트 순서(known_problems[0]) + candidate_idx 고정값 사용."""
     from src.tools.toxicophore_detector import detect_toxicophores
-    from src.tools.agent import ask_llm_which_problem_to_fix
+    from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
 
     current = canonicalize(smiles)
     seen = {current}
@@ -105,17 +106,23 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             return {"status": "no_known_fix", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
 
         if llm_client is not None:
-            decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems)
-            target_rule = decision['rule_name']
-            decision_reason = decision.get('reason', '')
+            problem_decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems)
+            target_rule = problem_decision['rule_name']
+            problem_reason = problem_decision.get('reason', '')
+
+            candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, target_rule)
+            chosen_candidate_idx = candidate_decision['candidate_idx']
+            candidate_reason = candidate_decision.get('reason', '')
         else:
             target_rule = known_problems[0]['rule_name']
-            decision_reason = "규칙 기반(리스트 순서대로)"
+            problem_reason = "규칙 기반(리스트 순서대로)"
+            chosen_candidate_idx = candidate_idx
+            candidate_reason = "규칙 기반(고정 인덱스)"
 
-        fixed = propose_fix(current, target_rule, candidate_idx)
+        fixed = propose_fix(current, target_rule, chosen_candidate_idx)
 
         if fixed is None or not fixed['is_valid']:
-            return {"status": "stuck", "reason": f"'{target_rule}' 치환 실패", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
+            return {"status": "stuck", "reason": f"'{target_rule}' 치환 실패 (core/target 매칭 실패 또는 재조립 실패)", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
 
         new_current = canonicalize(fixed['new_smiles'])
 
@@ -128,8 +135,9 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             "step": step,
             "smiles": current,
             "fixed_rule": target_rule,
-            "decision_reason": decision_reason,
+            "problem_reason": problem_reason,
             "candidate_used": fixed['candidate_used'],
+            "candidate_reason": candidate_reason,
         })
 
     return {"status": "max_iterations_reached", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
