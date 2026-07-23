@@ -27,10 +27,13 @@ def find_core_and_target(smiles: str, rule_name: str):
         if len(parts) != 2:
             continue
         for i, part in enumerate(parts):
-            part_mol = Chem.MolFromSmiles(part.replace('[*:1]', '[H]'))
+            # attachment point를 [H] 대신 C로 치환: 자유 원자가 아니라
+            # "무언가에 결합되어 있던 상태"를 더 정확히 재현하기 위함
+            part_mol = Chem.MolFromSmiles(part.replace('[*:1]', 'C'))
             if part_mol is None or not part_mol.HasSubstructMatch(problem_pattern):
                 continue
-            frag_heavy_atoms = part_mol.GetNumHeavyAtoms()
+            # heavy atom 개수 비교 시, 방금 붙인 더미 탄소는 빼고 비교해야 함
+            frag_heavy_atoms = part_mol.GetNumHeavyAtoms() - 1
             if frag_heavy_atoms == pattern_size:
                 return {"core": parts[1 - i], "target_removed": part}
     return None
@@ -77,9 +80,6 @@ def canonicalize(smiles: str):
 
 def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
                         llm_client=None, llm_model=None):
-    """진단->치환->재평가를 반복.
-    llm_client가 주어지면: 어떤 문제부터 고칠지 + 어떤 후보를 쓸지 둘 다 LLM이 판단.
-    없으면: 리스트 순서(known_problems[0]) + candidate_idx 고정값 사용."""
     from src.tools.toxicophore_detector import detect_toxicophores
     from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
 
@@ -122,7 +122,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         fixed = propose_fix(current, target_rule, chosen_candidate_idx)
 
         if fixed is None or not fixed['is_valid']:
-            return {"status": "stuck", "reason": f"'{target_rule}' 치환 실패 (core/target 매칭 실패 또는 재조립 실패)", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
+            return {"status": "stuck", "reason": f"'{target_rule}' 치환 실패", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
 
         new_current = canonicalize(fixed['new_smiles'])
 

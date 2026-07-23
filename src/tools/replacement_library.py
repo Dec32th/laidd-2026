@@ -51,7 +51,7 @@ REPLACEMENT_LIBRARY = {
         ],
     },
     "aniline": {
-        "problem_smarts": "[NH2][c]",
+        "problem_smarts": "[NH2]",
         "candidates": [
             {"smiles": "C(=O)N", "name": "acetamide (acylated amine)",
              "rationale": "1차 방향족 아민을 아마이드로 아실화하여 N-hydroxylation 경로 자체를 차단"},
