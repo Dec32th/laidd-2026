@@ -83,7 +83,7 @@ REPLACEMENT_LIBRARY = {
              "source": "data-driven (Tox21 MMP analysis, charge-matched, Δmw<50)"},
         ],
     },
-    "sulfonic_acid": {
+    "Sulfonic_acid_2": {
         "problem_smarts": "S(=O)(=O)[OX2H1]",
         "candidates": [
             {"smiles": "S(=O)(=O)N", "name": "sulfonamide",
@@ -93,7 +93,7 @@ REPLACEMENT_LIBRARY = {
                           "중성에 가까워 약물유사성이 개선됨"},
         ],
     },
-    "oxime": {
+    "imine_1": {
         "problem_smarts": "C=N[OX2H1]",
         "candidates": [
             {"smiles": "CN", "name": "amine (reduced)",
