@@ -222,3 +222,5 @@ __marimo__/
 
 # Model artifacts (large binaries, don't commit)
 *.pkl
+data/ames.tab
+data/*.tab
