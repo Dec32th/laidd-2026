@@ -8,7 +8,6 @@ def _check_and_match(part_smiles, problem_pattern, pattern_size):
     part_mol = Chem.MolFromSmiles(part_smiles.replace('[*:1]', 'C').replace('[*:2]', 'C'))
     if part_mol is None or not part_mol.HasSubstructMatch(problem_pattern):
         return False
-    # attachment point 개수만큼 더미 탄소가 붙었으니 그만큼 빼줘야 함
     n_attachment = part_smiles.count('[*:')
     return part_mol.GetNumHeavyAtoms() - n_attachment == pattern_size
 
@@ -54,32 +53,23 @@ def find_core_and_target(smiles: str, rule_name: str):
                 continue
             other_chain_part = chain_parts[1 - i]
 
-            # core는 attachment point를 2개([*:1],[*:2]) 가짐.
-            # target(=part)이 [*:1] 쪽인지 [*:2] 쪽인지 확인해서,
-            # target이 아닌 쪽 attachment point에 other_chain_part를 먼저 이어붙여
-            # 완전한(attachment point 1개만 남은) core를 만든다.
             target_ap = '[*:1]' if '[*:1]' in part else ('[*:2]' if '[*:2]' in part else None)
             if target_ap is None:
                 continue
-            keep_ap = '[*:2]' if target_ap == '[*:1]' else '[*:1]'
 
             core_mol = Chem.MolFromSmiles(core)
             other_mol = Chem.MolFromSmiles(other_chain_part)
             if core_mol is None or other_mol is None:
                 continue
             try:
-                # core의 keep_ap 자리에 other_chain_part를 결합
                 merged = Chem.molzip(core_mol, other_mol)
             except Exception:
                 continue
 
             merged_smiles = Chem.MolToSmiles(merged)
-            # merged 결과에는 target_ap가 [*:1] 라벨로 남아있어야 reassemble_molecule과 호환됨.
-            # molzip 이후 라벨 번호가 바뀔 수 있으므로, 표준 [*:1] 하나만 남았는지 확인.
             if merged_smiles.count('[*:') != 1:
                 continue
             if '[*:1]' not in merged_smiles:
-                # 라벨이 [*:2]로 남았다면 [*:1]로 통일
                 merged_smiles = merged_smiles.replace('[*:2]', '[*:1]')
 
             return {"core": merged_smiles, "target_removed": part}
@@ -127,7 +117,11 @@ def canonicalize(smiles: str):
 
 
 def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
-                        llm_client=None, llm_model=None):
+                        llm_client=None, llm_model=None, llm_client_type="gemini"):
+    """진단->치환->재평가를 반복.
+    llm_client가 주어지면: 어떤 문제부터 고칠지 + 어떤 후보를 쓸지 둘 다 LLM이 판단.
+    llm_client_type: "gemini" 또는 "openai_compatible" (Qwen, ChatKHU 등 OpenAI SDK 호환 게이트웨이).
+    llm_client가 없으면: 리스트 순서(known_problems[0]) + candidate_idx 고정값 사용."""
     from src.tools.toxicophore_detector import detect_toxicophores
     from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
 
@@ -154,11 +148,15 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             return {"status": "no_known_fix", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
 
         if llm_client is not None:
-            problem_decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems)
+            problem_decision = ask_llm_which_problem_to_fix(
+                llm_client, llm_model, current, problems, client_type=llm_client_type
+            )
             target_rule = problem_decision['rule_name']
             problem_reason = problem_decision.get('reason', '')
 
-            candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, target_rule)
+            candidate_decision = ask_llm_which_candidate_to_use(
+                llm_client, llm_model, current, target_rule, client_type=llm_client_type
+            )
             chosen_candidate_idx = candidate_decision['candidate_idx']
             candidate_reason = candidate_decision.get('reason', '')
         else:
