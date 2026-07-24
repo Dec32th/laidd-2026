@@ -84,7 +84,7 @@ REPLACEMENT_LIBRARY = {
         ],
     },
     "Sulfonic_acid_2": {
-        "problem_smarts": "S(=O)(=O)[OX2H1]",
+        "problem_smarts": "S(=O)(=O)[OX2H1,OX1-]",
         "candidates": [
             {"smiles": "S(=O)(=O)N", "name": "sulfonamide",
              "rationale": "생리적 pH에서 이온화 정도(전하)를 크게 낮춰 세포막 투과성을 "
