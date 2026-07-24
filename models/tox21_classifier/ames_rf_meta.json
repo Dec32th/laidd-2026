@@ -1,0 +1,8 @@
+{
+  "model_type": "RandomForestClassifier",
+  "featurizer": "ECFP (radius=2, n_bits=2048)",
+  "dataset": "Hansen et al. 2009 Ames Mutagenicity Benchmark (via TDC)",
+  "valid_auc": 0.8924680191538088,
+  "test_auc": 0.9083784689687745,
+  "created_at": "2026-07-24T07:07:43.157583"
+}
