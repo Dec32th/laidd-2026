@@ -83,6 +83,25 @@ REPLACEMENT_LIBRARY = {
              "source": "data-driven (Tox21 MMP analysis, charge-matched, Δmw<50)"},
         ],
     },
+    "sulfonic_acid": {
+        "problem_smarts": "S(=O)(=O)[OX2H1]",
+        "candidates": [
+            {"smiles": "S(=O)(=O)N", "name": "sulfonamide",
+             "rationale": "생리적 pH에서 이온화 정도(전하)를 크게 낮춰 세포막 투과성을 "
+                          "개선함. 설폰산은 대부분 음이온 상태로 존재해 경구 흡수가 "
+                          "저해되는 경우가 많으나, 설폰아마이드는 유사한 골격을 유지하면서도 "
+                          "중성에 가까워 약물유사성이 개선됨"},
+        ],
+    },
+    "oxime": {
+        "problem_smarts": "C=N[OX2H1]",
+        "candidates": [
+            {"smiles": "CN", "name": "amine (reduced)",
+             "rationale": "옥심의 C=N 결합을 환원하여, 가수분해 시 원래의 반응성 "
+                          "카르보닐(알데히드/케톤)로 되돌아갈 수 있는 대사 불안정 "
+                          "경로를 제거함"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
