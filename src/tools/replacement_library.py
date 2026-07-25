@@ -39,6 +39,8 @@ REPLACEMENT_LIBRARY = {
         "candidates": [
             {"smiles": "C(=O)N", "name": "amide",
              "rationale": "고반응성 아실할라이드를 안정적인 아마이드로 대체"},
+            {"smiles": "C(=O)O", "name": "ester",
+             "rationale": "아마이드보다 극성이 낮고 유연한 대체 옵션, 가수분해 속도 조절 가능 (검증 필요)"},
         ],
     },
     "alkyl_halide": {
@@ -91,6 +93,9 @@ REPLACEMENT_LIBRARY = {
                           "개선함. 설폰산은 대부분 음이온 상태로 존재해 경구 흡수가 "
                           "저해되는 경우가 많으나, 설폰아마이드는 유사한 골격을 유지하면서도 "
                           "중성에 가까워 약물유사성이 개선됨"},
+            {"smiles": "C(=O)O", "name": "carboxylic acid",
+             "rationale": "설폰산보다 산성도가 약하고 부피가 작은 산성 bioisostere "
+                          "(검증 필요)"},
         ],
     },
     "imine_1": {
@@ -100,6 +105,9 @@ REPLACEMENT_LIBRARY = {
              "rationale": "옥심의 C=N 결합을 환원하여, 가수분해 시 원래의 반응성 "
                           "카르보닐(알데히드/케톤)로 되돌아갈 수 있는 대사 불안정 "
                           "경로를 제거함"},
+            {"smiles": "C#N", "name": "nitrile",
+             "rationale": "옥심의 탈수 반응으로 니트릴을 얻는 것은 잘 알려진 화학 변환, "
+                          "극성을 낮추면서 대사 불안정성 개선 (검증 필요)"},
         ],
     },
 }
