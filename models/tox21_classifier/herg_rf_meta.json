@@ -1,0 +1,10 @@
+{
+  "model_type": "RandomForestClassifier",
+  "dataset": "TDC hERG (Karim et al. 2021, via PyTDC --no-deps)",
+  "train_size": 458,
+  "valid_size": 66,
+  "test_size": 131,
+  "valid_auc": 0.836,
+  "test_auc": 0.846,
+  "created_at": "2026-07-25T02:34:44.042933"
+}
