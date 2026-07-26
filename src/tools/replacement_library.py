@@ -79,6 +79,31 @@ REPLACEMENT_LIBRARY = {
                           "극성을 낮추면서 대사 불안정성 개선 (검증 필요)"},
         ],
     },
+    "catechol": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[OX2H;$(Oc1ccccc1O)]",
+        "target_idx_in_pattern": 0,
+        "candidates": [
+            {"edit_type": "add_substituent", "param": "C", "name": "methoxy",
+             "rationale": "인체의 COMT(catechol-O-methyltransferase) 효소가 카테콜을 "
+                          "메톡시페놀로 메틸화하여 해독하는 생리적 경로와 동일한 원리. "
+                          "오르토-퀴논으로의 산화 경로를 차단하여 세포독성/유전독성 우려를 "
+                          "낮춤 (학생 확인 예정: ScienceDirect catechol overview, "
+                          "PMC6643002 등 참고)"},
+        ],
+    },
+    "Thiocarbonyl_group": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[#6]=[#16]",
+        "target_idx_in_pattern": 1,
+        "candidates": [
+            {"edit_type": "replace_element", "param": 8, "name": "carbonyl (O replacing S)",
+             "rationale": "황을 산소로 대체(티오카르보닐->카르보닐)하는 것은 흔한 "
+                          "bioisostere 전략으로, 갑상선 기능 저해 등 황 함유 작용기 "
+                          "특유의 대사/독성 우려를 낮춤 (검증 필요, thiourea->urea "
+                          "치환 논리와 동일 계열)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:

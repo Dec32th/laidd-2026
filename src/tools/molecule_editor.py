@@ -105,6 +105,15 @@ def reassemble_molecule(core_smiles: str, rule_name: str, candidate_idx: int = 0
 
 
 def propose_fix(smiles: str, rule_name: str, candidate_idx: int = 0):
+    """규칙의 edit_method에 따라 결합절단형(기존) 또는 원자직접편집형(신규)으로 분기."""
+    info = get_replacement_candidates(rule_name)
+    if info is None:
+        return None
+
+    if info.get("edit_method") == "atom_edit":
+        from src.tools.atom_editor import apply_atom_edit_from_rule
+        return apply_atom_edit_from_rule(smiles, rule_name, candidate_idx)
+
     located = find_core_and_target(smiles, rule_name)
     if located is None:
         return None
@@ -120,7 +129,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                         llm_client=None, llm_model=None, llm_client_type="gemini"):
     """진단->치환->재평가를 반복.
     llm_client가 주어지면: 어떤 문제부터 고칠지 + 어떤 후보를 쓸지 둘 다 LLM이 판단.
-    llm_client_type: "gemini" 또는 "openai_compatible" (Qwen, ChatKHU 등 OpenAI SDK 호환 게이트웨이).
+    llm_client_type: "gemini" 또는 "openai_compatible".
     llm_client가 없으면: 리스트 순서(known_problems[0]) + candidate_idx 고정값 사용."""
     from src.tools.toxicophore_detector import detect_toxicophores
     from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
@@ -148,15 +157,11 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             return {"status": "no_known_fix", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
 
         if llm_client is not None:
-            problem_decision = ask_llm_which_problem_to_fix(
-                llm_client, llm_model, current, problems, client_type=llm_client_type
-            )
+            problem_decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems, client_type=llm_client_type)
             target_rule = problem_decision['rule_name']
             problem_reason = problem_decision.get('reason', '')
 
-            candidate_decision = ask_llm_which_candidate_to_use(
-                llm_client, llm_model, current, target_rule, client_type=llm_client_type
-            )
+            candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, target_rule, client_type=llm_client_type)
             chosen_candidate_idx = candidate_decision['candidate_idx']
             candidate_reason = candidate_decision.get('reason', '')
         else:
