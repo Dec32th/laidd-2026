@@ -20,21 +20,14 @@ REPLACEMENT_LIBRARY = {
              "rationale": "가장 단순한 환원형 대체, 반응성 크게 감소"},
         ],
     },
-    "michael_acceptor": {
+    "Michael_acceptor_1": {
         "problem_smarts": "C=CC(=O)",
         "candidates": [
             {"smiles": "CCC(=O)", "name": "saturated ketone",
              "rationale": "이중결합을 제거해 단백질 친전자성 부가반응(covalent binding) 위험 제거"},
         ],
     },
-    "thiourea": {
-        "problem_smarts": "NC(=S)N",
-        "candidates": [
-            {"smiles": "NC(=O)N", "name": "urea",
-             "rationale": "황 원자를 산소로 대체, 유사한 형태를 유지하면서 반응성/대사 우려 감소"},
-        ],
-    },
-    "acyl_halide": {
+    "acid_halide": {
         "problem_smarts": "C(=O)[F,Cl,Br,I]",
         "candidates": [
             {"smiles": "C(=O)N", "name": "amide",
@@ -59,30 +52,6 @@ REPLACEMENT_LIBRARY = {
              "rationale": "1차 방향족 아민을 아마이드로 아실화하여 N-hydroxylation 경로 자체를 차단"},
             {"smiles": "F", "name": "fluorine",
              "rationale": "반응성 아민을 제거하면서 전자끄는기로 고리 전자밀도 보정"},
-        ],
-    },
-    "phenol": {
-        "problem_smarts": "[OX2H]",
-        "candidates": [
-            {"smiles": "Cl", "name": "chlorine",
-             "rationale": "MMPA 데이터 기반 발견: Tox21에서 페놀->염소 치환 시 NR-ER, "
-                          "NR-ER-LBD, SR-ARE 3개 assay 동시 개선 관찰됨. 페놀의 산화적 대사 "
-                          "(quinone 형성 등) 경로를 차단하는 것으로 추정",
-             "source": "data-driven (Tox21 MMP analysis, charge-matched, Δmw<50)"},
-            {"smiles": "C", "name": "methyl",
-             "rationale": "MMPA 데이터 기반 발견: Tox21에서 페놀->메틸 치환 시 NR-AR "
-                          "assay 개선 관찰됨. 히드록실기 제거로 산화 취약성 감소 추정",
-             "source": "data-driven (Tox21 MMP analysis, charge-matched, Δmw<50)"},
-        ],
-    },
-    "amide": {
-        "problem_smarts": "[NX3H1][CX3](=O)[#6]",
-        "candidates": [
-            {"smiles": "NC(=O)N", "name": "urea",
-             "rationale": "MMPA 데이터 기반 발견: Tox21에서 N-메틸아마이드->우레아 치환 시 "
-                          "SR-ARE assay 개선 관찰됨. 기존 thiourea->urea 치환과 같은 "
-                          "계열(우레아 활용)로 일관성 있음",
-             "source": "data-driven (Tox21 MMP analysis, charge-matched, Δmw<50)"},
         ],
     },
     "Sulfonic_acid_2": {
