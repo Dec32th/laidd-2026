@@ -162,18 +162,18 @@ REPLACEMENT_LIBRARY = {
     },
     "het-C-het_not_in_ring": {
         "edit_method": "atom_edit",
-        "problem_smarts": "[CX4](O)(O)O",
+        "problem_smarts": "[CX4](O)(O)",
         "candidates": [
             {"edit_type": "remove_substituent",
              "center_idx_in_pattern": 0,
              "remove_idx_in_pattern": 1,
              "upgrade_bond_to_idx_in_pattern": 2,
-             "name": "ester (one alkoxy removed, C=O formed)",
-             "rationale": "오르토에스터(탄소 하나에 알콕시기 3개)는 가수분해에 매우 "
-                          "민감하여 알데히드/에스터로 쉽게 분해되며 대사 불안정성을 "
-                          "일으킴. 알콕시기 하나를 제거하고 남은 산소를 카르보닐로 "
-                          "승격시켜 일반적인 에스터로 전환, 가수분해 반응성을 낮춤 "
-                          "(검증 필요)"},
+             "name": "ketone/ester (one alkoxy removed, C=O formed)",
+             "rationale": "아세탈/케탈 또는 오르토에스터(탄소 하나에 알콕시기 2개 "
+                          "이상)는 가수분해에 민감하여 반응성 카르보닐(케톤/알데히드)로 "
+                          "쉽게 분해되며 대사 불안정성을 일으킴. 알콕시기 하나를 제거하고 "
+                          "남은 산소를 카르보닐로 승격시켜, 가수분해로 어차피 도달할 "
+                          "안정한 최종 형태로 미리 전환함 (검증 필요)"},
         ],
     },
 }
