@@ -67,16 +67,26 @@ REPLACEMENT_LIBRARY = {
                           "(검증 필요)"},
         ],
     },
-    "imine_1": {
+    "imine_1_oxime": {
+        "edit_method": "atom_edit",
         "problem_smarts": "C=N[OX2H1]",
+        "target_idx_pair_in_pattern": (0, 1),
         "candidates": [
-            {"smiles": "CN", "name": "amine (reduced)",
+            {"edit_type": "reduce_bond", "name": "amine (reduced)",
              "rationale": "옥심의 C=N 결합을 환원하여, 가수분해 시 원래의 반응성 "
                           "카르보닐(알데히드/케톤)로 되돌아갈 수 있는 대사 불안정 "
                           "경로를 제거함"},
-            {"smiles": "C#N", "name": "nitrile",
-             "rationale": "옥심의 탈수 반응으로 니트릴을 얻는 것은 잘 알려진 화학 변환, "
-                          "극성을 낮추면서 대사 불안정성 개선 (검증 필요)"},
+        ],
+    },
+    "imine_1_general": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "C=N",
+        "target_idx_pair_in_pattern": (0, 1),
+        "candidates": [
+            {"edit_type": "reduce_bond", "name": "amine (reduced)",
+             "rationale": "일반 이민(C=N-R)을 환원하여 가수분해 시 반응성 카르보닐로 "
+                          "되돌아갈 수 있는 대사 불안정 경로를 제거함. 옥심 특유의 "
+                          "메커니즘보다는 근거가 다소 약하며, 하위 구조별 개별 검증 필요"},
         ],
     },
     "catechol": {

@@ -2,7 +2,7 @@ from rdkit import Chem
 
 
 def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 0):
-    """replacement_library의 atom_edit 규칙을 이용해 원자 직접 편집을 수행."""
+    """replacement_library의 atom_edit 규칙을 이용해 원자/결합 직접 편집을 수행."""
     from src.tools.replacement_library import get_replacement_candidates
     info = get_replacement_candidates(rule_name)
     if info is None or info.get("edit_method") != "atom_edit":
@@ -12,7 +12,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
 
     candidate = info["candidates"][candidate_idx]
     smarts = info["problem_smarts"]
-    target_idx_in_pattern = info["target_idx_in_pattern"]
 
     mol = Chem.MolFromSmiles(smiles)
     pattern = Chem.MolFromSmarts(smarts)
@@ -22,15 +21,18 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
     matches = mol.GetSubstructMatches(pattern)
     if not matches:
         return None
-    target_idx = matches[0][target_idx_in_pattern]
+    match = matches[0]
 
     rwmol = Chem.RWMol(mol)
+    edit_type = candidate["edit_type"]
 
-    if candidate["edit_type"] == "replace_element":
+    if edit_type == "replace_element":
+        target_idx = match[info["target_idx_in_pattern"]]
         atom = rwmol.GetAtomWithIdx(target_idx)
         atom.SetAtomicNum(candidate["param"])
 
-    elif candidate["edit_type"] == "add_substituent":
+    elif edit_type == "add_substituent":
+        target_idx = match[info["target_idx_in_pattern"]]
         frag = Chem.MolFromSmiles(candidate["param"])
         if frag is None:
             return None
@@ -43,6 +45,17 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom.SetNumExplicitHs(atom.GetNumExplicitHs() - 1)
         else:
             atom.SetNoImplicit(False)
+
+    elif edit_type == "reduce_bond":
+        idx1 = match[info["target_idx_pair_in_pattern"][0]]
+        idx2 = match[info["target_idx_pair_in_pattern"][1]]
+        bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
+        if bond is None:
+            return None
+        bond.SetBondType(Chem.BondType.SINGLE)
+        for idx in (idx1, idx2):
+            atom = rwmol.GetAtomWithIdx(idx)
+            atom.SetNoImplicit(False)
     else:
         return None
 
@@ -53,7 +66,16 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         return None
 
     new_smiles = Chem.MolToSmiles(new_mol)
-    is_valid = Chem.MolFromSmiles(new_smiles) is not None
+
+    # 유효성 검증 강화: 파싱 가능 여부뿐 아니라, [C]/[N]처럼 암묵적 수소가
+    # 비정상적으로 억제된 원자가 남아있는지도 확인
+    check_mol = Chem.MolFromSmiles(new_smiles)
+    is_valid = check_mol is not None
+    if is_valid:
+        for atom in check_mol.GetAtoms():
+            if atom.GetNoImplicit() and atom.GetSymbol() in ('C', 'N', 'O') and atom.GetTotalNumHs() == 0 and atom.GetDegree() < 4:
+                is_valid = False
+                break
 
     return {
         "new_smiles": new_smiles,
