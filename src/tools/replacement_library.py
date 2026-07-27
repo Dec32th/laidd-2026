@@ -160,6 +160,22 @@ REPLACEMENT_LIBRARY = {
                           "독성 기전)을 제거함 (검증 필요)"},
         ],
     },
+    "het-C-het_not_in_ring": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[CX4](O)(O)O",
+        "candidates": [
+            {"edit_type": "remove_substituent",
+             "center_idx_in_pattern": 0,
+             "remove_idx_in_pattern": 1,
+             "upgrade_bond_to_idx_in_pattern": 2,
+             "name": "ester (one alkoxy removed, C=O formed)",
+             "rationale": "오르토에스터(탄소 하나에 알콕시기 3개)는 가수분해에 매우 "
+                          "민감하여 알데히드/에스터로 쉽게 분해되며 대사 불안정성을 "
+                          "일으킴. 알콕시기 하나를 제거하고 남은 산소를 카르보닐로 "
+                          "승격시켜 일반적인 에스터로 전환, 가수분해 반응성을 낮춤 "
+                          "(검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:

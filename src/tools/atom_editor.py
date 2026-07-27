@@ -69,6 +69,63 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom.SetNoImplicit(False)
             atom.SetNumExplicitHs(0)
 
+    elif edit_type == "remove_substituent":
+        # remove_idx_in_pattern: 완전히 제거할 치환기 시작 원자(패턴 내 위치)
+        # upgrade_bond_to_idx_in_pattern: 남아서 이중결합으로 승격될 원자(패턴 내 위치).
+        #   이 원자에 붙은 알킬기(중심원자 방향 제외)도 함께 제거해야 카르보닐로 완성됨
+        # center_idx_in_pattern: 중심 원자(패턴 내 위치)
+        remove_idx = match[candidate["remove_idx_in_pattern"]]
+        upgrade_idx = match[candidate["upgrade_bond_to_idx_in_pattern"]]
+        center_idx = match[candidate.get("center_idx_in_pattern", 0)]
+
+        to_remove = set()
+        visited = {center_idx}
+
+        # 1) remove_idx 쪽 치환기 전체 삭제 대상 수집
+        stack = [remove_idx]
+        while stack:
+            cur = stack.pop()
+            if cur in visited:
+                continue
+            visited.add(cur)
+            to_remove.add(cur)
+            for n in mol.GetAtomWithIdx(cur).GetNeighbors():
+                if n.GetIdx() not in visited:
+                    stack.append(n.GetIdx())
+
+        # 2) upgrade_idx는 남기되, 거기 붙은 알킬기(중심/이미 삭제대상 제외)도 제거
+        visited.add(upgrade_idx)
+        upgrade_atom = mol.GetAtomWithIdx(upgrade_idx)
+        for n in upgrade_atom.GetNeighbors():
+            if n.GetIdx() != center_idx and n.GetIdx() not in to_remove:
+                stack2 = [n.GetIdx()]
+                while stack2:
+                    cur2 = stack2.pop()
+                    if cur2 in visited:
+                        continue
+                    visited.add(cur2)
+                    to_remove.add(cur2)
+                    for n2 in mol.GetAtomWithIdx(cur2).GetNeighbors():
+                        if n2.GetIdx() not in visited:
+                            stack2.append(n2.GetIdx())
+
+        for ridx in sorted(to_remove, reverse=True):
+            rwmol.RemoveAtom(ridx)
+
+        def _adjust3(idx, removed):
+            shift = sum(1 for r in removed if r < idx)
+            return idx - shift
+
+        center_new = _adjust3(center_idx, to_remove)
+        upgrade_new = _adjust3(upgrade_idx, to_remove)
+
+        bond = rwmol.GetBondBetweenAtoms(center_new, upgrade_new)
+        if bond is None:
+            return None
+        bond.SetBondType(Chem.BondType.DOUBLE)
+        rwmol.GetAtomWithIdx(center_new).SetNoImplicit(False)
+        rwmol.GetAtomWithIdx(upgrade_new).SetNoImplicit(False)
+
     elif edit_type == "replace_ring":
         ring_key = candidate.get("ring_atom_indices_in_pattern", info.get("ring_atom_indices_in_pattern"))
         anchor_key = candidate.get("anchor_indices_in_pattern", info.get("anchor_indices_in_pattern"))
