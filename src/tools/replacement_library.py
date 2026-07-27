@@ -118,6 +118,21 @@ REPLACEMENT_LIBRARY = {
                           "치환 논리와 동일 계열)"},
         ],
     },
+    "aniline_ring_bcp": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[NH2]c1ccc([#6,#7,#8,#16])cc1",
+        "ring_atom_indices_in_pattern": [1, 2, 3, 4, 6, 7],
+        "anchor_indices_in_pattern": (0, 5),
+        "candidates": [
+            {"edit_type": "replace_ring", "param": "[*:1]C12CC(C1)(C2)[*:2]",
+             "name": "BCP (bicyclo[1.1.1]pentane)",
+             "rationale": "para-이치환 아닐린의 방향족 벤젠 고리를 포화 bicyclic "
+                          "탄소골격(BCP)으로 교체함. 방향족성 제거로 aniline reactive "
+                          "metabolite(RM) 형성 및 CYP-inhibition을 감소시켜, 퀴논이민 "
+                          "생성 경로를 차단하고 특이체질 약물 부작용(IADR) 위험을 낮춤 "
+                          "(문헌 근거, 학생 제공)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
