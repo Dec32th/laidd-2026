@@ -130,7 +130,19 @@ REPLACEMENT_LIBRARY = {
                           "탄소골격(BCP)으로 교체함. 방향족성 제거로 aniline reactive "
                           "metabolite(RM) 형성 및 CYP-inhibition을 감소시켜, 퀴논이민 "
                           "생성 경로를 차단하고 특이체질 약물 부작용(IADR) 위험을 낮춤 "
-                          "(문헌 근거, 학생 제공)"},
+                          "(문헌 근거, 학생 제공). 벤젠과의 공간적 유사성, Fsp3 증가, "
+                          "실제 성공 사례가 많아 우선 채택함(BCO/NB/CUB는 근거 부족으로 보류)"},
+        ],
+    },
+    "thiol_2": {
+        "problem_smarts": "[SX2H1]",
+        "candidates": [
+            {"smiles": "O", "name": "hydroxyl (alcohol)",
+             "rationale": "티올의 금속 킬레이팅 및 산화(이황화물/술펜산 형성) 반응성을 "
+                          "제거하면서, 극성·수소결합 특성을 유사하게 유지함"},
+            {"smiles": "C(=O)N", "name": "amide",
+             "rationale": "티올을 아마이드로 대체하여 반응성을 낮추면서 약물유사 골격에서 "
+                          "흔히 쓰이는 안정적 작용기로 전환 (검증 필요)"},
         ],
     },
 }
