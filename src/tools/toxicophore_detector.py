@@ -9,6 +9,7 @@ def _build_catalog():
 
 _catalog = _build_catalog()
 _oxime_pattern = Chem.MolFromSmarts("C=N[OX2H1]")
+_para_aniline_pattern = Chem.MolFromSmarts("[NH2]c1ccc([#6,#7,#8,#16])cc1")
 
 
 def _refine_imine1(mol, atom_indices):
@@ -27,6 +28,8 @@ def detect_toxicophores(smiles: str) -> list[dict]:
     분자의 SMILES를 받아, FilterCatalog(PAINS+BRENK)에 매치되는
     문제 구조(toxicophore)들을 찾아서 규칙 이름과 해당 원자 인덱스를 반환.
     imine_1은 옥심/일반이민 하위형으로 세분화하여 반환한다.
+    추가로, para-치환 아닐린(문헌 기반 커스텀 규칙, FilterCatalog 항목 아님)을
+    별도로 탐지하여 aniline과 함께 반환한다.
     """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
@@ -45,4 +48,15 @@ def detect_toxicophores(smiles: str) -> list[dict]:
                 "rule_name": rule_name,
                 "atom_indices": atom_indices,
             })
+
+    # 커스텀 규칙: para-치환 아닐린 (FilterCatalog에 없는, 문헌 기반 자체 추가 규칙)
+    if mol.HasSubstructMatch(_para_aniline_pattern):
+        matches = mol.GetSubstructMatches(_para_aniline_pattern)
+        for match in matches:
+            atom_indices = sorted(set(match))
+            results.append({
+                "rule_name": "aniline_ring_bcp",
+                "atom_indices": atom_indices,
+            })
+
     return results
