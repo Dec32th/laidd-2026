@@ -99,13 +99,15 @@ REPLACEMENT_LIBRARY = {
     },
     "imine_1_general": {
         "edit_method": "atom_edit",
-        "problem_smarts": "C=N",
+        "problem_smarts": "[CX3;!$(C(N)(N)=N)]=N",
         "target_idx_pair_in_pattern": (0, 1),
         "candidates": [
             {"edit_type": "reduce_bond", "name": "amine (reduced)",
              "rationale": "일반 이민(C=N-R)을 환원하여 가수분해 시 반응성 카르보닐로 "
                           "되돌아갈 수 있는 대사 불안정 경로를 제거함. 옥심 특유의 "
-                          "메커니즘보다는 근거가 다소 약하며, 하위 구조별 개별 검증 필요"},
+                          "메커니즘보다는 근거가 다소 약하며, 하위 구조별 개별 검증 필요. "
+                          "구아니딘(N-C(=N)-N, 공명구조로 일반 이민과 반응성이 다름)은 "
+                          "이 SMARTS에서 명시적으로 제외함"},
         ],
     },
     "catechol": {
