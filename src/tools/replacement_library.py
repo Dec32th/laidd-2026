@@ -50,12 +50,27 @@ REPLACEMENT_LIBRARY = {
         ],
     },
     "aniline": {
-        "problem_smarts": "[NH2]",
+        "edit_method": "atom_edit",
+        "problem_smarts": "[NH2]c1ccc([#6,#7,#8,#16])cc1",
+        "target_idx_in_pattern": 0,
+        "ring_atom_indices_in_pattern": [1, 2, 3, 4, 6, 7],
+        "anchor_indices_in_pattern": (0, 5),
         "candidates": [
-            {"smiles": "C(=O)N", "name": "acetamide (acylated amine)",
+            {"edit_type": "add_substituent", "param": "C(=O)C",
+             "target_idx_in_pattern": 0,
+             "name": "acetamide (acylated amine)",
              "rationale": "1차 방향족 아민을 아마이드로 아실화하여 N-hydroxylation 경로 자체를 차단"},
-            {"smiles": "F", "name": "fluorine",
-             "rationale": "반응성 아민을 제거하면서 전자끄는기로 고리 전자밀도 보정"},
+            {"edit_type": "replace_ring", "param": "[*:1]C12CC(C1)(C2)[*:2]",
+             "ring_atom_indices_in_pattern": [1, 2, 3, 4, 6, 7],
+             "anchor_indices_in_pattern": (0, 5),
+             "name": "BCP (bicyclo[1.1.1]pentane)",
+             "rationale": "para-이치환 아닐린의 방향족 벤젠 고리를 포화 bicyclic "
+                          "탄소골격(BCP)으로 교체함. 방향족성 제거로 aniline reactive "
+                          "metabolite(RM) 형성 및 CYP-inhibition을 감소시켜, 퀴논이민 "
+                          "생성 경로를 차단하고 특이체질 약물 부작용(IADR) 위험을 낮춤 "
+                          "(문헌 근거, 학생 제공). 벤젠과의 공간적 유사성, Fsp3 증가, "
+                          "실제 성공 사례가 많아 채택. 아마이드화(단순 아민 치환)보다 "
+                          "변화 폭이 크지만, 물성 개선 효과도 더 큼"},
         ],
     },
     "Sulfonic_acid_2": {
@@ -116,22 +131,6 @@ REPLACEMENT_LIBRARY = {
                           "bioisostere 전략으로, 갑상선 기능 저해 등 황 함유 작용기 "
                           "특유의 대사/독성 우려를 낮춤 (검증 필요, thiourea->urea "
                           "치환 논리와 동일 계열)"},
-        ],
-    },
-    "aniline_ring_bcp": {
-        "edit_method": "atom_edit",
-        "problem_smarts": "[NH2]c1ccc([#6,#7,#8,#16])cc1",
-        "ring_atom_indices_in_pattern": [1, 2, 3, 4, 6, 7],
-        "anchor_indices_in_pattern": (0, 5),
-        "candidates": [
-            {"edit_type": "replace_ring", "param": "[*:1]C12CC(C1)(C2)[*:2]",
-             "name": "BCP (bicyclo[1.1.1]pentane)",
-             "rationale": "para-이치환 아닐린의 방향족 벤젠 고리를 포화 bicyclic "
-                          "탄소골격(BCP)으로 교체함. 방향족성 제거로 aniline reactive "
-                          "metabolite(RM) 형성 및 CYP-inhibition을 감소시켜, 퀴논이민 "
-                          "생성 경로를 차단하고 특이체질 약물 부작용(IADR) 위험을 낮춤 "
-                          "(문헌 근거, 학생 제공). 벤젠과의 공간적 유사성, Fsp3 증가, "
-                          "실제 성공 사례가 많아 우선 채택함(BCO/NB/CUB는 근거 부족으로 보류)"},
         ],
     },
     "thiol_2": {

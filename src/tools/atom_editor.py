@@ -2,7 +2,9 @@ from rdkit import Chem
 
 
 def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 0):
-    """replacement_library의 atom_edit 규칙을 이용해 원자/결합/고리 직접 편집을 수행."""
+    """replacement_library의 atom_edit 규칙을 이용해 원자/결합/고리 직접 편집을 수행.
+    candidate마다 다른 edit_type을 가질 수 있음 (예: 같은 문제에 대해
+    작은 변화(치환기 하나 추가)와 큰 변화(고리 전체 교체)를 후보로 병렬 제시)."""
     from src.tools.replacement_library import get_replacement_candidates
     info = get_replacement_candidates(rule_name)
     if info is None or info.get("edit_method") != "atom_edit":
@@ -27,12 +29,12 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
     edit_type = candidate["edit_type"]
 
     if edit_type == "replace_element":
-        target_idx = match[info["target_idx_in_pattern"]]
+        target_idx = match[candidate.get("target_idx_in_pattern", info.get("target_idx_in_pattern"))]
         atom = rwmol.GetAtomWithIdx(target_idx)
         atom.SetAtomicNum(candidate["param"])
 
     elif edit_type == "add_substituent":
-        target_idx = match[info["target_idx_in_pattern"]]
+        target_idx = match[candidate.get("target_idx_in_pattern", info.get("target_idx_in_pattern"))]
         frag = Chem.MolFromSmiles(candidate["param"])
         if frag is None:
             return None
@@ -47,8 +49,9 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom.SetNoImplicit(False)
 
     elif edit_type == "reduce_bond":
-        idx1 = match[info["target_idx_pair_in_pattern"][0]]
-        idx2 = match[info["target_idx_pair_in_pattern"][1]]
+        pair = candidate.get("target_idx_pair_in_pattern", info.get("target_idx_pair_in_pattern"))
+        idx1 = match[pair[0]]
+        idx2 = match[pair[1]]
         bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
         if bond is None:
             return None
@@ -58,20 +61,20 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom.SetNoImplicit(False)
 
     elif edit_type == "replace_multi":
-        # param: [{"idx_in_pattern": int, "new_element": int, "new_charge": int}, ...]
-        # 여러 원자를 한 번에, 각각 다른 원소/전하로 교체
         for sub in candidate["param"]:
             target_idx = match[sub["idx_in_pattern"]]
             atom = rwmol.GetAtomWithIdx(target_idx)
             atom.SetAtomicNum(sub["new_element"])
             atom.SetFormalCharge(sub.get("new_charge", 0))
             atom.SetNoImplicit(False)
-            atom.SetNumExplicitHs(0)  # 새 원소 기준으로 암묵적 H를 다시 계산하도록 초기화
+            atom.SetNumExplicitHs(0)
 
     elif edit_type == "replace_ring":
-        ring_indices = [match[i] for i in info["ring_atom_indices_in_pattern"]]
-        anchor_idx1 = match[info["anchor_indices_in_pattern"][0]]
-        anchor_idx2 = match[info["anchor_indices_in_pattern"][1]]
+        ring_key = candidate.get("ring_atom_indices_in_pattern", info.get("ring_atom_indices_in_pattern"))
+        anchor_key = candidate.get("anchor_indices_in_pattern", info.get("anchor_indices_in_pattern"))
+        ring_indices = [match[i] for i in ring_key]
+        anchor_idx1 = match[anchor_key[0]]
+        anchor_idx2 = match[anchor_key[1]]
 
         anchor1_ring_neighbor = None
         anchor2_ring_neighbor = None
