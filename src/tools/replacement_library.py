@@ -21,10 +21,14 @@ REPLACEMENT_LIBRARY = {
         ],
     },
     "Michael_acceptor_1": {
+        "edit_method": "atom_edit",
         "problem_smarts": "C=CC(=O)",
+        "target_idx_pair_in_pattern": (0, 1),
         "candidates": [
-            {"smiles": "CCC(=O)", "name": "saturated ketone",
-             "rationale": "이중결합을 제거해 단백질 친전자성 부가반응(covalent binding) 위험 제거"},
+            {"edit_type": "reduce_bond", "name": "saturated (C-C single bond)",
+             "rationale": "알파,베타-불포화 카르보닐의 C=C 이중결합을 환원하여 "
+                          "단백질 친전자성 부가반응(Michael addition, covalent "
+                          "binding) 위험을 제거함"},
         ],
     },
     "acid_halide": {

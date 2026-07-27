@@ -67,13 +67,15 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
 
     new_smiles = Chem.MolToSmiles(new_mol)
 
-    # 유효성 검증 강화: 파싱 가능 여부뿐 아니라, [C]/[N]처럼 암묵적 수소가
-    # 비정상적으로 억제된 원자가 남아있는지도 확인
+    # 유효성 검증: 파싱 가능 여부 + 전하를 고려한 비정상 원자가 체크
+    # (전하가 있는 원자는 결합수가 적어도 정상일 수 있으므로 FormalCharge==0인 경우만 검사)
     check_mol = Chem.MolFromSmiles(new_smiles)
     is_valid = check_mol is not None
     if is_valid:
         for atom in check_mol.GetAtoms():
-            if atom.GetNoImplicit() and atom.GetSymbol() in ('C', 'N', 'O') and atom.GetTotalNumHs() == 0 and atom.GetDegree() < 4:
+            if (atom.GetNoImplicit() and atom.GetFormalCharge() == 0
+                    and atom.GetSymbol() in ('C', 'N', 'O')
+                    and atom.GetTotalNumHs() == 0 and atom.GetDegree() < 4):
                 is_valid = False
                 break
 
