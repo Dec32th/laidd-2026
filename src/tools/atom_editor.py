@@ -57,14 +57,22 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom = rwmol.GetAtomWithIdx(idx)
             atom.SetNoImplicit(False)
 
+    elif edit_type == "replace_multi":
+        # param: [{"idx_in_pattern": int, "new_element": int, "new_charge": int}, ...]
+        # 여러 원자를 한 번에, 각각 다른 원소/전하로 교체
+        for sub in candidate["param"]:
+            target_idx = match[sub["idx_in_pattern"]]
+            atom = rwmol.GetAtomWithIdx(target_idx)
+            atom.SetAtomicNum(sub["new_element"])
+            atom.SetFormalCharge(sub.get("new_charge", 0))
+            atom.SetNoImplicit(False)
+            atom.SetNumExplicitHs(0)  # 새 원소 기준으로 암묵적 H를 다시 계산하도록 초기화
+
     elif edit_type == "replace_ring":
-        # ring_atom_indices_in_pattern: 제거할 고리 원자들의 패턴 내 위치 리스트
-        # anchor_indices_in_pattern: 고리 밖에서 고리로 연결되는 두 앵커 원자의 패턴 내 위치 (외부에 남을 원자들)
         ring_indices = [match[i] for i in info["ring_atom_indices_in_pattern"]]
         anchor_idx1 = match[info["anchor_indices_in_pattern"][0]]
         anchor_idx2 = match[info["anchor_indices_in_pattern"][1]]
 
-        # 앵커가 고리의 어느 원자와 연결되어 있었는지 파악
         anchor1_ring_neighbor = None
         anchor2_ring_neighbor = None
         for ridx in ring_indices:
@@ -78,17 +86,13 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         if anchor1_ring_neighbor is None or anchor2_ring_neighbor is None:
             return None
 
-        # 새 골격(BCP 등)을 분자에 붙이기: [*:1]...[*:2] 형태의 SMILES 사용
         frag = Chem.MolFromSmiles(candidate["param"])
         if frag is None:
             return None
 
-        # 고리 원자를 전부 삭제 (큰 인덱스부터 삭제해야 인덱스 밀림 방지)
         for ridx in sorted(ring_indices, reverse=True):
             rwmol.RemoveAtom(ridx)
 
-        # 원자 삭제 후 앵커 원자들의 인덱스가 바뀌었을 수 있으므로 매핑 재계산
-        # (RDKit은 삭제 시 그 이후 인덱스들을 당겨오므로, 삭제된 원자보다 큰 인덱스는 -1씩 감소)
         def _adjust(idx, removed):
             shift = sum(1 for r in removed if r < idx)
             return idx - shift
@@ -113,7 +117,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         if frag_attach1 is None or frag_attach2 is None:
             return None
 
-        # 더미원자([*:1],[*:2])의 실제 이웃(진짜 골격 탄소)을 찾아 그쪽과 결합
         dummy1 = rwmol2.GetAtomWithIdx(frag_attach1)
         dummy2 = rwmol2.GetAtomWithIdx(frag_attach2)
         real_neighbor1 = dummy1.GetNeighbors()[0].GetIdx()
@@ -131,8 +134,7 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
     try:
         new_mol = rwmol.GetMol()
         Chem.SanitizeMol(new_mol)
-    except Exception as e:
-        print("Sanitize 실패:", e)
+    except Exception:
         return None
 
     new_smiles = Chem.MolToSmiles(new_mol)

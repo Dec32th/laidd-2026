@@ -145,6 +145,22 @@ REPLACEMENT_LIBRARY = {
                           "흔히 쓰이는 안정적 작용기로 전환 (검증 필요)"},
         ],
     },
+    "thiol_1": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "C(=S)[SX1-]",
+        "candidates": [
+            {"edit_type": "replace_multi",
+             "param": [
+                 {"idx_in_pattern": 1, "new_element": 8, "new_charge": 0},
+                 {"idx_in_pattern": 2, "new_element": 7, "new_charge": 0},
+             ],
+             "name": "carbamate (O,N replacing S,S)",
+             "rationale": "디티오카바메이트(R-O-C(=S)-S-)를 카바메이트(R-O-C(=O)-N)로 "
+                          "전환. 두 황 원자를 각각 산소·질소로 교체하여 금속 킬레이팅 "
+                          "능력과 효소 억제 활성(디티오카바메이트류 특유의 살충제성 "
+                          "독성 기전)을 제거함 (검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
