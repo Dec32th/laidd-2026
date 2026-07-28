@@ -130,7 +130,9 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
     """진단->치환->재평가를 반복.
     llm_client가 주어지면: 어떤 문제부터 고칠지 + 어떤 후보를 쓸지 둘 다 LLM이 판단.
     llm_client_type: "gemini" 또는 "openai_compatible".
-    llm_client가 없으면: 리스트 순서(known_problems[0]) + candidate_idx 고정값 사용."""
+    llm_client가 없으면: 리스트 순서(known_problems[0]) + candidate_idx 고정값 사용.
+    skipped_details/reason_detail: 연구자가 no_known_fix/stuck 사유를 바로
+    확인할 수 있도록 사람이 읽을 수 있는 설명과 매치된 원자 정보를 함께 제공."""
     from src.tools.toxicophore_detector import detect_toxicophores
     from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
 
@@ -138,13 +140,15 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
     seen = {current}
     history = [{"step": 0, "smiles": current}]
     skipped_rules = []
+    skipped_details = []
 
     for step in range(1, max_iterations + 1):
         problems = detect_toxicophores(current)
         history[-1]["problems"] = problems
 
         if not problems:
-            return {"status": "success", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
+            return {"status": "success", "final_smiles": current, "history": history,
+                    "skipped_rules": skipped_rules, "skipped_details": skipped_details}
 
         known_problems = [p for p in problems if get_replacement_candidates(p['rule_name']) is not None]
         unknown_problems = [p for p in problems if p not in known_problems]
@@ -152,9 +156,21 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         for p in unknown_problems:
             if p['rule_name'] not in skipped_rules:
                 skipped_rules.append(p['rule_name'])
+                mol_cur = Chem.MolFromSmiles(current)
+                matched_atoms = p['atom_indices']
+                atom_symbols = [mol_cur.GetAtomWithIdx(i).GetSymbol() for i in matched_atoms] if mol_cur else []
+                skipped_details.append({
+                    "rule_name": p['rule_name'],
+                    "reason": f"라이브러리에 등록되지 않은 규칙입니다. FilterCatalog(PAINS/BRENK)가 "
+                              f"'{p['rule_name']}'로 진단했으며, 매치된 원자 인덱스는 {matched_atoms}"
+                              f"(원소: {atom_symbols})입니다. 이 구조에 대한 치환 규칙을 "
+                              f"replacement_library.py에 추가하면 자동으로 처리 가능합니다.",
+                    "atom_indices": matched_atoms,
+                })
 
         if not known_problems:
-            return {"status": "no_known_fix", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
+            return {"status": "no_known_fix", "final_smiles": current, "history": history,
+                    "skipped_rules": skipped_rules, "skipped_details": skipped_details}
 
         if llm_client is not None:
             problem_decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems, client_type=llm_client_type)
@@ -173,12 +189,21 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         fixed = propose_fix(current, target_rule, chosen_candidate_idx)
 
         if fixed is None or not fixed['is_valid']:
-            return {"status": "stuck", "reason": f"'{target_rule}' 치환 실패", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
+            matched = next((p['atom_indices'] for p in problems if p['rule_name'] == target_rule), [])
+            reason_detail = (f"'{target_rule}' 규칙은 라이브러리에 있으나, 이 분자의 구체적 구조에서 "
+                              f"치환 실행이 실패했습니다. 흔한 원인: 유기금속/무기염 등 특수 화학종, "
+                              f"고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다. "
+                              f"매치된 원자: {matched}")
+            return {"status": "stuck", "reason": f"'{target_rule}' 치환 실패",
+                    "reason_detail": reason_detail,
+                    "final_smiles": current, "history": history,
+                    "skipped_rules": skipped_rules, "skipped_details": skipped_details}
 
         new_current = canonicalize(fixed['new_smiles'])
 
         if new_current in seen:
-            return {"status": "cycle_detected", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
+            return {"status": "cycle_detected", "final_smiles": current, "history": history,
+                    "skipped_rules": skipped_rules, "skipped_details": skipped_details}
 
         seen.add(new_current)
         current = new_current
@@ -191,4 +216,5 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             "candidate_reason": candidate_reason,
         })
 
-    return {"status": "max_iterations_reached", "final_smiles": current, "history": history, "skipped_rules": skipped_rules}
+    return {"status": "max_iterations_reached", "final_smiles": current, "history": history,
+            "skipped_rules": skipped_rules, "skipped_details": skipped_details}
