@@ -381,6 +381,50 @@ REPLACEMENT_LIBRARY = {
                           "안트라퀴논 등 융합고리형은 미지원)"},
         ],
     },
+    "isocyanate": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[NX2]=[CX2]=[OX1]",
+        "center_idx_in_pattern": 0,
+        "candidates": [
+            {"edit_type": "remove_atom",
+            "remove_idx_in_pattern": 1,
+            "center_idx_in_pattern": 0,
+            "name": "amine (NCO hydrolyzed)",
+            "rationale": "이소시아네이트(R-N=C=O)는 매우 반응성이 높은 친전자체로, "
+                      "단백질/아미노기와 쉽게 부가반응을 일으켜 직업성 천식·과민증을 "
+                      "유발하는 것으로 잘 알려짐(TDI, MDI 등 산업용 이소시아네이트 "
+                      "사례). 체내/환경에서 실제로 일어나는 가수분해 경로(R-NCO + H2O "
+                      "-> R-NH2 + CO2)와 동일하게 카르보닐 탄소와 산소를 제거하고 "
+                      "질소만 남겨 아민으로 전환 (검증 필요)"},
+        ],
+    },
+    "triple_bond": {
+        "problem_smarts": "C#C",
+        "edit_method": "atom_edit",
+        "target_idx_pair_in_pattern": (0, 1),
+        "candidates": [
+            {"edit_type": "reduce_bond", "name": "alkene (partially reduced)",
+            "rationale": "말단 알카인(삼중결합)은 CYP450 효소에 의해 기계기반 억제"
+                      "(mechanism-based inhibition) 경로로 대사되며, 반응성 케텐/"
+                      "에폭사이드 중간체를 형성해 효소를 비가역적으로 불활성화할 "
+                      "수 있음(에티닐에스트라디올 등에서 알려진 메커니즘). 삼중결합을 "
+                      "이중결합으로 환원하여 반응성을 낮춤 (검증 필요, 완전 포화가 "
+                      "아닌 부분 환원)"},
+        ],
+    },
+    "stilbene": {
+        "problem_smarts": "c-[CX3]=[CX3]-c",
+        "edit_method": "atom_edit",
+        "target_idx_pair_in_pattern": (1, 2),
+        "candidates": [
+            {"edit_type": "reduce_bond", "name": "diarylethane (reduced)",
+            "rationale": "스틸벤 구조(두 방향족 고리를 잇는 C=C)는 디에틸스틸베스트롤"
+                      "(DES)처럼 내분비교란 및 대사 산화를 통한 반응성 중간체 형성이 "
+                      "알려진 골격. 이중결합을 환원하여 평면성을 낮추고 대사 반응성을 "
+                      "완화함 (검증 필요, 에스트로겐 수용체 결합에 필요한 형태 자체를 "
+                      "훼손할 수 있어 신중한 해석 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
