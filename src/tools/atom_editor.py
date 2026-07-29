@@ -2,9 +2,7 @@ from rdkit import Chem
 
 
 def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 0):
-    """replacement_library의 atom_edit 규칙을 이용해 원자/결합/고리 직접 편집을 수행.
-    candidate마다 다른 edit_type을 가질 수 있음 (예: 같은 문제에 대해
-    작은 변화(치환기 하나 추가)와 큰 변화(고리 전체 교체)를 후보로 병렬 제시)."""
+    """replacement_library의 atom_edit 규칙을 이용해 원자/결합/고리 직접 편집을 수행."""
     from src.tools.replacement_library import get_replacement_candidates
     info = get_replacement_candidates(rule_name)
     if info is None or info.get("edit_method") != "atom_edit":
@@ -120,10 +118,39 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(center_new).SetNoImplicit(False)
         rwmol.GetAtomWithIdx(upgrade_new).SetNoImplicit(False)
 
+    elif edit_type == "remove_atom":
+        # remove_idx_in_pattern에 해당하는 원자(및 center 쪽으로 연결 안 된
+        # 그 원자의 하위 치환기 전체)를 완전히 제거. remove_substituent와
+        # 달리 남은 결합을 이중결합으로 승격하지 않고, center 원자의
+        # 암묵적 수소를 자동 재계산하도록만 둔다 (예: 하이드라지드의
+        # 말단 N을 제거해 단순 아마이드로 되돌리는 경우)
+        remove_idx = match[candidate["remove_idx_in_pattern"]]
+        center_idx = match[candidate.get("center_idx_in_pattern", 0)]
+
+        to_remove = set()
+        visited = {center_idx}
+        stack = [remove_idx]
+        while stack:
+            cur = stack.pop()
+            if cur in visited:
+                continue
+            visited.add(cur)
+            to_remove.add(cur)
+            for n in mol.GetAtomWithIdx(cur).GetNeighbors():
+                if n.GetIdx() not in visited:
+                    stack.append(n.GetIdx())
+
+        for ridx in sorted(to_remove, reverse=True):
+            rwmol.RemoveAtom(ridx)
+
+        def _adjust4(idx, removed):
+            shift = sum(1 for r in removed if r < idx)
+            return idx - shift
+
+        center_new = _adjust4(center_idx, to_remove)
+        rwmol.GetAtomWithIdx(center_new).SetNoImplicit(False)
+
     elif edit_type == "open_epoxide":
-        # break_pair_in_pattern: (유지될 산소의 패턴위치, 끊어낼 탄소의 패턴위치)
-        # 산소-탄소 결합을 끊고, 그 탄소에 새 OH를 추가. 남은 산소는 자동으로
-        # (암묵적 수소 재계산을 통해) 하이드록실이 되어, 결과적으로 비시날 디올이 됨
         pair = candidate["break_pair_in_pattern"]
         idx_o = match[pair[0]]
         idx_c_break = match[pair[1]]

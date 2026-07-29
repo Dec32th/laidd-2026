@@ -11,9 +11,12 @@ _catalog = _build_catalog()
 _oxime_pattern = Chem.MolFromSmarts("C=N[OX2H1]")
 _guanidine_pattern = Chem.MolFromSmarts("[$(C(N)(N)=N)]")
 
+# PAINS와 BRENK 양쪽에 동일 화학구조를 잡는 중복 규칙명이 있는 경우,
+# 우리 라이브러리 기준 이름으로 통일 (동일하거나 겹치는 원자 인덱스로 확인된 것만)
 _DUPLICATE_RULE_MAP = {
     "catechol_A(92)": "catechol",
     "diazo_group": "azo_A(324)",
+    "oxime_1": "imine_1_oxime",
 }
 
 
@@ -41,16 +44,17 @@ def detect_toxicophores(smiles: str) -> list[dict]:
     imine_1은 옥심/구아니딘/일반이민 하위형으로 세분화하여 반환한다.
     aniline은 FilterCatalog의 단순 [NH2] 탐지 대신, replacement_library의
     확장된 패턴(para-치환 벤젠 포함)을 그대로 사용해 재정의한다.
-    PAINS/BRENK가 동일 원자를 서로 다른 이름으로 중복 보고하는 경우
-    (예: catechol_A(92)==catechol, diazo_group==azo_A(324)), 라이브러리
-    기준 이름으로 통일하고 중복 항목은 제거한다.
+    PAINS/BRENK가 동일하거나 부분적으로 겹치는 구조를 서로 다른 이름/원자
+    범위로 중복 보고하는 경우(예: catechol_A(92)==catechol,
+    diazo_group==azo_A(324), oxime_1이 imine_1_oxime과 원자 하나 차이로
+    겹침), 같은 rule_name에 원자 인덱스가 하나라도 겹치면 중복으로 간주해
+    제거한다(완전히 동일한 인덱스일 필요는 없음).
     """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return []
 
     results = []
-    seen_entries = set()
 
     for entry in _catalog.GetMatches(mol):
         for fm in entry.GetFilterMatches(mol):
@@ -64,10 +68,12 @@ def detect_toxicophores(smiles: str) -> list[dict]:
             elif rule_name in _DUPLICATE_RULE_MAP:
                 rule_name = _DUPLICATE_RULE_MAP[rule_name]
 
-            dedup_key = (rule_name, tuple(atom_indices))
-            if dedup_key in seen_entries:
+            is_duplicate = any(
+                r['rule_name'] == rule_name and set(r['atom_indices']) & set(atom_indices)
+                for r in results
+            )
+            if is_duplicate:
                 continue
-            seen_entries.add(dedup_key)
 
             results.append({
                 "rule_name": rule_name,

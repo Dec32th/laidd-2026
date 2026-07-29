@@ -264,6 +264,47 @@ REPLACEMENT_LIBRARY = {
                           "반응성을 낮춤 (검증 필요)"},
         ],
     },
+    "thioester": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[SX2](C(=O))",
+        "target_idx_in_pattern": 0,
+        "candidates": [
+            {"edit_type": "replace_element", "param": 8, "name": "ester (O replacing S)",
+             "rationale": "티오에스터의 황을 산소로 대체하여 일반 에스터로 전환. "
+                          "티오에스터는 일반 에스터보다 가수분해 반응성이 높고 아실화 "
+                          "능력이 강해 단백질 등과 부반응 우려가 있음 (검증 필요)"},
+        ],
+    },
+    "N-nitroso": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[NX2;+0;!$(N(=O)[O-])]=[OX1;+0]",
+        "target_idx_pair_in_pattern": (0, 1),
+        "candidates": [
+            {"edit_type": "reduce_bond", "name": "N-hydroxylamine (reduced)",
+             "rationale": "N-니트로소 화합물(니트로사민)은 대사 활성화(알파-수산화)를 "
+                          "거쳐 강력한 알킬화 발암물질을 생성하는 것으로 잘 알려짐 "
+                          "(발사르탄, 라니티딘 등 실제 의약품 불순물 리콜 사례). "
+                          "N=O를 환원하여 반응성을 낮춤 (검증 필요: 완전한 해독은 "
+                          "탈니트로소화가 필요하며 이는 근사적 접근)"},
+        ],
+    },
+    "hydrazine": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[NX3H2][NX3H1]",
+        "center_idx_in_pattern": 1,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 0,
+             "center_idx_in_pattern": 1,
+             "name": "amide/amine (terminal N removed)",
+             "rationale": "하이드라진/하이드라지드(R-NH-NH2)의 말단 질소를 제거하여 "
+                          "단순 아민 또는 아마이드로 되돌림. 하이드라진류는 대사 시 "
+                          "반응성 디아제늄 중간체를 형성해 유전독성을 일으킬 수 있는 "
+                          "것으로 알려짐. 이는 azo_A(324) 환원 시 생성되는 하이드라진 "
+                          "중간체의 잔여 위험을 추가로 낮추는 후속 규칙이기도 함 "
+                          "(검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
