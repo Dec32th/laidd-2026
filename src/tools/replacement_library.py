@@ -223,6 +223,33 @@ REPLACEMENT_LIBRARY = {
                           "공유결합을 통한 간독성 위험이 있음"},
         ],
     },
+    "azo_A(324)": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "N=N",
+        "target_idx_pair_in_pattern": (0, 1),
+        "candidates": [
+            {"edit_type": "reduce_bond", "name": "hydrazine (reduced)",
+             "rationale": "아조기(N=N)는 체내에서 아조환원효소에 의해 환원되어 두 개의 "
+                          "방향족 아민으로 분해되며, 그 중 일부(벤지딘류 등)가 발암성을 "
+                          "가지는 것으로 잘 알려짐(아조 색소의 대표적 독성 메커니즘). "
+                          "이중결합을 환원하여 하이드라진 형태로 전환, 완전한 아민 "
+                          "분해 경로 자체를 차단함 (검증 필요: 하이드라진 자체의 "
+                          "잔여 반응성은 추가 확인 필요)"},
+        ],
+    },
+    "Three-membered_heterocycle": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[CX4]1[OX2][CX4]1",
+        "candidates": [
+            {"edit_type": "open_epoxide", "break_pair_in_pattern": (1, 2),
+             "name": "vicinal diol (ring-opened)",
+             "rationale": "에폭시드(3원자 고리, 옥시란)는 고리 변형(strain)으로 인해 "
+                          "친핵체(DNA, 단백질)와 쉽게 반응하는 알킬화제로 작용함. "
+                          "체내 에폭시드 가수분해효소(epoxide hydrolase)가 실제로 "
+                          "수행하는 반응과 동일하게 고리를 열어 비시날 디올(vicinal "
+                          "diol)로 전환, 반응성을 제거함"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:

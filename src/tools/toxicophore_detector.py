@@ -11,10 +11,9 @@ _catalog = _build_catalog()
 _oxime_pattern = Chem.MolFromSmarts("C=N[OX2H1]")
 _guanidine_pattern = Chem.MolFromSmarts("[$(C(N)(N)=N)]")
 
-# PAINS와 BRENK 양쪽에 동일 화학구조를 잡는 중복 규칙명이 있는 경우,
-# 우리 라이브러리 기준 이름으로 통일 (동일 원자 인덱스로 확인된 것만)
 _DUPLICATE_RULE_MAP = {
     "catechol_A(92)": "catechol",
+    "diazo_group": "azo_A(324)",
 }
 
 
@@ -43,8 +42,8 @@ def detect_toxicophores(smiles: str) -> list[dict]:
     aniline은 FilterCatalog의 단순 [NH2] 탐지 대신, replacement_library의
     확장된 패턴(para-치환 벤젠 포함)을 그대로 사용해 재정의한다.
     PAINS/BRENK가 동일 원자를 서로 다른 이름으로 중복 보고하는 경우
-    (예: catechol_A(92) == catechol), 라이브러리 기준 이름으로 통일하고
-    중복 항목은 제거한다.
+    (예: catechol_A(92)==catechol, diazo_group==azo_A(324)), 라이브러리
+    기준 이름으로 통일하고 중복 항목은 제거한다.
     """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:

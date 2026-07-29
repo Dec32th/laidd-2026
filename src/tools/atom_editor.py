@@ -70,10 +70,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom.SetNumExplicitHs(0)
 
     elif edit_type == "remove_substituent":
-        # remove_idx_in_pattern: 완전히 제거할 치환기 시작 원자(패턴 내 위치)
-        # upgrade_bond_to_idx_in_pattern: 남아서 이중결합으로 승격될 원자(패턴 내 위치).
-        #   이 원자에 붙은 알킬기(중심원자 방향 제외)도 함께 제거해야 카르보닐로 완성됨
-        # center_idx_in_pattern: 중심 원자(패턴 내 위치)
         remove_idx = match[candidate["remove_idx_in_pattern"]]
         upgrade_idx = match[candidate["upgrade_bond_to_idx_in_pattern"]]
         center_idx = match[candidate.get("center_idx_in_pattern", 0)]
@@ -81,7 +77,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         to_remove = set()
         visited = {center_idx}
 
-        # 1) remove_idx 쪽 치환기 전체 삭제 대상 수집
         stack = [remove_idx]
         while stack:
             cur = stack.pop()
@@ -93,7 +88,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
                 if n.GetIdx() not in visited:
                     stack.append(n.GetIdx())
 
-        # 2) upgrade_idx는 남기되, 거기 붙은 알킬기(중심/이미 삭제대상 제외)도 제거
         visited.add(upgrade_idx)
         upgrade_atom = mol.GetAtomWithIdx(upgrade_idx)
         for n in upgrade_atom.GetNeighbors():
@@ -125,6 +119,31 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         bond.SetBondType(Chem.BondType.DOUBLE)
         rwmol.GetAtomWithIdx(center_new).SetNoImplicit(False)
         rwmol.GetAtomWithIdx(upgrade_new).SetNoImplicit(False)
+
+    elif edit_type == "open_epoxide":
+        # break_pair_in_pattern: (유지될 산소의 패턴위치, 끊어낼 탄소의 패턴위치)
+        # 산소-탄소 결합을 끊고, 그 탄소에 새 OH를 추가. 남은 산소는 자동으로
+        # (암묵적 수소 재계산을 통해) 하이드록실이 되어, 결과적으로 비시날 디올이 됨
+        pair = candidate["break_pair_in_pattern"]
+        idx_o = match[pair[0]]
+        idx_c_break = match[pair[1]]
+
+        bond = rwmol.GetBondBetweenAtoms(idx_o, idx_c_break)
+        if bond is None:
+            return None
+        rwmol.RemoveBond(idx_o, idx_c_break)
+
+        frag = Chem.MolFromSmiles("O")
+        if frag is None:
+            return None
+        combined = Chem.CombineMols(rwmol.GetMol(), frag)
+        rwmol = Chem.RWMol(combined)
+        offset = mol.GetNumAtoms()
+        rwmol.AddBond(idx_c_break, offset, Chem.BondType.SINGLE)
+
+        rwmol.GetAtomWithIdx(idx_o).SetNoImplicit(False)
+        rwmol.GetAtomWithIdx(idx_c_break).SetNoImplicit(False)
+        rwmol.GetAtomWithIdx(offset).SetNoImplicit(False)
 
     elif edit_type == "replace_ring":
         ring_key = candidate.get("ring_atom_indices_in_pattern", info.get("ring_atom_indices_in_pattern"))
