@@ -425,6 +425,23 @@ REPLACEMENT_LIBRARY = {
                       "훼손할 수 있어 신중한 해석 필요)"},
         ],
     },
+    "beta-keto/anhydride": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "C(=O)OC(=O)",
+        "center_idx_in_pattern": 2,
+        "candidates": [
+            {"edit_type": "remove_atom",
+            "remove_idx_in_pattern": 3,
+            "center_idx_in_pattern": 2,
+            "name": "carboxylic acid (anhydride hydrolyzed)",
+            "rationale": "산 무수물(R-C(=O)-O-C(=O)-R')은 강한 아실화제로 단백질 아미노산 "
+                      "잔기와 쉽게 반응하며, 수용액 환경에서 자발적으로 가수분해되어 "
+                      "두 개의 카르복실산으로 분해되는 것이 자연스러운 무독화 경로임. "
+                      "한쪽 아실기를 제거하여 이 가수분해 최종형(카르복실산)으로 직접 "
+                      "전환 (검증 필요). ※ 대안 후보(무수물->아마이드/이미드 bioisostere) "
+                      "는 문헌 확인 후 추가 예정"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
