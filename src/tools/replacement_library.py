@@ -364,6 +364,23 @@ REPLACEMENT_LIBRARY = {
                           "산화·금속킬레이팅 반응성을 낮춤 (검증 필요)"},
         ],
     },
+    "quinone_A(370)": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "O=C1C=CC(=O)C=C1",
+        "target_pairs_in_pattern": [(1, 0), (4, 5)],
+        "ring_atoms_in_pattern": [1, 2, 3, 4, 6, 7],
+        "ring_bonds_in_pattern": [(1, 2), (2, 3), (3, 4), (4, 6), (6, 7), (7, 1)],
+        "candidates": [
+            {"edit_type": "reduce_multi_bond", "name": "hydroquinone (reduced, re-aromatized)",
+             "rationale": "파라벤조퀴논은 산화환원 사이클(redox cycling)을 통해 활성산소종(ROS)을 "
+                          "생성하고 DNA/단백질과 직접 공유결합하는 대표적 반응성 구조. 체내 "
+                          "NQO1(퀴논 환원효소) 효소가 실제로 수행하는 반응과 동일하게 두 카르보닐을 "
+                          "환원하고 고리를 재방향족화하여 안정적인 하이드로퀴논으로 전환. 결과물이 "
+                          "다시 hydroquinone 규칙에 해당할 수 있으며, 이 경우 반복 루프가 자동으로 "
+                          "메톡시페놀 등 산화에 더 안정적인 형태로 한 단계 더 개선함 (검증 필요, "
+                          "안트라퀴논 등 융합고리형은 미지원)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:

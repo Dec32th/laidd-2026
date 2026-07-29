@@ -58,6 +58,39 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom = rwmol.GetAtomWithIdx(idx)
             atom.SetNoImplicit(False)
 
+    elif edit_type == "reduce_multi_bond":
+        # 여러 이중결합(예: 퀴논의 두 카르보닐)을 동시에 환원하면서, 고리를
+        # 방향족으로 재선언하여 RDKit이 유효한 케쿨레 구조(교대 이중결합
+        # 배치)를 스스로 찾도록 함. 카르보닐 탄소는 수소를 받지 않고,
+        # 반대편 산소만 수소를 받아 하이드록실이 됨(화학적으로 정확한
+        # 전자 재배치를 반영).
+        pairs = candidate.get("target_pairs_in_pattern", info.get("target_pairs_in_pattern"))
+        ring_atoms_pattern = candidate.get("ring_atoms_in_pattern", info.get("ring_atoms_in_pattern"))
+        ring_bonds_pattern = candidate.get("ring_bonds_in_pattern", info.get("ring_bonds_in_pattern"))
+
+        for pair in pairs:
+            idx_c = match[pair[0]]
+            idx_o = match[pair[1]]
+            bond = rwmol.GetBondBetweenAtoms(idx_c, idx_o)
+            if bond is None:
+                return None
+            bond.SetBondType(Chem.BondType.SINGLE)
+            rwmol.GetAtomWithIdx(idx_o).SetNoImplicit(False)
+            rwmol.GetAtomWithIdx(idx_c).SetNumExplicitHs(0)
+            rwmol.GetAtomWithIdx(idx_c).SetNoImplicit(False)
+
+        ring_indices = [match[i] for i in ring_atoms_pattern]
+        for a in ring_indices:
+            rwmol.GetAtomWithIdx(a).SetIsAromatic(True)
+
+        for b1, b2 in ring_bonds_pattern:
+            bidx1, bidx2 = match[b1], match[b2]
+            rbond = rwmol.GetBondBetweenAtoms(bidx1, bidx2)
+            if rbond is None:
+                return None
+            rbond.SetBondType(Chem.BondType.AROMATIC)
+            rbond.SetIsAromatic(True)
+
     elif edit_type == "replace_multi":
         for sub in candidate["param"]:
             target_idx = match[sub["idx_in_pattern"]]
@@ -146,9 +179,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(center_new).SetNoImplicit(False)
 
     elif edit_type == "cleave_bond":
-        # 단일결합을 완전히 끊어 두 개의 독립된 조각(분자)으로 분리.
-        # 양쪽 원자 모두 남기고 암묵적 수소만 재계산 (예: 이황화결합
-        # R-S-S-R'를 두 개의 티올 R-SH, R'-SH로 분리)
         pair = candidate["cleave_pair_in_pattern"]
         idx1 = match[pair[0]]
         idx2 = match[pair[1]]
