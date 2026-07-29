@@ -119,11 +119,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(upgrade_new).SetNoImplicit(False)
 
     elif edit_type == "remove_atom":
-        # remove_idx_in_pattern에 해당하는 원자(및 center 쪽으로 연결 안 된
-        # 그 원자의 하위 치환기 전체)를 완전히 제거. remove_substituent와
-        # 달리 남은 결합을 이중결합으로 승격하지 않고, center 원자의
-        # 암묵적 수소를 자동 재계산하도록만 둔다 (예: 하이드라지드의
-        # 말단 N을 제거해 단순 아마이드로 되돌리는 경우)
         remove_idx = match[candidate["remove_idx_in_pattern"]]
         center_idx = match[candidate.get("center_idx_in_pattern", 0)]
 
@@ -149,6 +144,20 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
 
         center_new = _adjust4(center_idx, to_remove)
         rwmol.GetAtomWithIdx(center_new).SetNoImplicit(False)
+
+    elif edit_type == "cleave_bond":
+        # 단일결합을 완전히 끊어 두 개의 독립된 조각(분자)으로 분리.
+        # 양쪽 원자 모두 남기고 암묵적 수소만 재계산 (예: 이황화결합
+        # R-S-S-R'를 두 개의 티올 R-SH, R'-SH로 분리)
+        pair = candidate["cleave_pair_in_pattern"]
+        idx1 = match[pair[0]]
+        idx2 = match[pair[1]]
+        bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
+        if bond is None:
+            return None
+        rwmol.RemoveBond(idx1, idx2)
+        for idx in (idx1, idx2):
+            rwmol.GetAtomWithIdx(idx).SetNoImplicit(False)
 
     elif edit_type == "open_epoxide":
         pair = candidate["break_pair_in_pattern"]

@@ -305,6 +305,65 @@ REPLACEMENT_LIBRARY = {
                           "(검증 필요)"},
         ],
     },
+    "sulphate": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[OX2][SX4](=O)(=O)[OX1,OX2H]",
+        "center_idx_in_pattern": 0,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 1,
+             "center_idx_in_pattern": 0,
+             "name": "alcohol (sulfate group removed)",
+             "rationale": "알킬 설페이트 에스터(R-O-SO3-)는 대사되어 반응성 있는 "
+                          "설페이트 이탈기를 통한 알킬화제로 작용할 수 있음(디메틸설페이트가 "
+                          "강력한 발암/독성 물질로 잘 알려진 대표 사례). 설페이트기 전체를 "
+                          "제거하여 원래의 알코올로 되돌림 (검증 필요)"},
+        ],
+    },
+    "N_oxide": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[n+][O-]",
+        "center_idx_in_pattern": 0,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 1,
+             "center_idx_in_pattern": 0,
+             "name": "pyridine (N-oxide removed)",
+             "rationale": "방향족 N-옥사이드는 산화적 대사산물이자 반응성 중간체 "
+                          "생성 경로의 일부일 수 있음. 산소를 제거하여 원래의 중성 "
+                          "방향족 아민(피리딘 등)으로 환원, 자연 대사에서의 환원 "
+                          "경로와 유사한 방향으로 반응성을 낮춤 (검증 필요)"},
+        ],
+    },
+    "2-halo_pyridine": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "n:c(-[Cl,Br,I])",
+        "center_idx_in_pattern": 1,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 2,
+             "center_idx_in_pattern": 1,
+             "name": "pyridine (halogen removed)",
+             "rationale": "피리딘 고리 질소에 인접한 위치의 할로겐(특히 불소/염소)은 "
+                          "친핵성 방향족 치환(SNAr) 반응에 취약해, 체내 친핵체(글루타치온, "
+                          "단백질 시스테인 등)와 반응할 수 있음. 할로겐을 제거하고 수소로 "
+                          "대체하여 이 반응성 경로를 차단함 (검증 필요)"},
+        ],
+    },
+    "disulphide": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[SX2][SX2]",
+        "candidates": [
+            {"edit_type": "cleave_bond", "cleave_pair_in_pattern": (0, 1),
+             "name": "two thiols (bond cleaved)",
+             "rationale": "[참고] 이황화결합(S-S)은 시스틴/단백질의 3차구조 형성에 "
+                          "필수적인 정상 생체 구조이기도 하므로, 이 결합이 약물의 "
+                          "구조 안정성이나 표적 결합에 관여하는 경우 본 치환이 "
+                          "부적절할 수 있음. || 디티오카바메이트류(티우람 등) 농약/"
+                          "살균제에서 흔한 반응성 이황화결합을 두 개의 티올로 분리, "
+                          "산화·금속킬레이팅 반응성을 낮춤 (검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
