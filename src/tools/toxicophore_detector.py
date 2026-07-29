@@ -11,12 +11,11 @@ _catalog = _build_catalog()
 _oxime_pattern = Chem.MolFromSmarts("C=N[OX2H1]")
 _guanidine_pattern = Chem.MolFromSmarts("[$(C(N)(N)=N)]")
 
-# PAINS와 BRENK 양쪽에 동일 화학구조를 잡는 중복 규칙명이 있는 경우,
-# 우리 라이브러리 기준 이름으로 통일 (동일하거나 겹치는 원자 인덱스로 확인된 것만)
 _DUPLICATE_RULE_MAP = {
     "catechol_A(92)": "catechol",
     "diazo_group": "azo_A(324)",
     "oxime_1": "imine_1_oxime",
+    "chinone_1": "quinone_A(370)",
 }
 
 
@@ -47,8 +46,9 @@ def detect_toxicophores(smiles: str) -> list[dict]:
     PAINS/BRENK가 동일하거나 부분적으로 겹치는 구조를 서로 다른 이름/원자
     범위로 중복 보고하는 경우(예: catechol_A(92)==catechol,
     diazo_group==azo_A(324), oxime_1이 imine_1_oxime과 원자 하나 차이로
-    겹침), 같은 rule_name에 원자 인덱스가 하나라도 겹치면 중복으로 간주해
-    제거한다(완전히 동일한 인덱스일 필요는 없음).
+    겹침, chinone_1==quinone_A(370)), 같은 rule_name에 원자 인덱스가
+    하나라도 겹치면 중복으로 간주해 제거한다(완전히 동일한 인덱스일
+    필요는 없음).
     """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
