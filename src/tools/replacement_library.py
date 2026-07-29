@@ -4,7 +4,11 @@ REPLACEMENT_LIBRARY = {
         "problem_smarts": "[N+](=O)[O-]",
         "candidates": [
             {"smiles": "N", "name": "primary amine",
-             "rationale": "극성을 유지하면서 니트로기의 환원성 대사 중간체 생성 경로를 제거함"},
+             "rationale": "[참고] 메트로니다졸, 니트로푸란토인, 벤즈니다졸 등 일부 "
+                          "항균제/항기생충제는 니트로기의 선택적 환원 활성화 자체가 "
+                          "치료 메커니즘이므로, 이런 프로드러그 설계 맥락에서는 본 "
+                          "치환이 적절하지 않을 수 있음. || 극성을 유지하면서 니트로기의 "
+                          "환원성 대사 중간체 생성 경로를 제거함"},
             {"smiles": "S(=O)(=O)N", "name": "sulfonamide",
              "rationale": "약물유사 골격에서 흔히 쓰이는 안정적 대체기로, 수소결합 donor/acceptor 특성을 일부 유지"},
             {"smiles": "C#N", "name": "nitrile",
@@ -26,7 +30,10 @@ REPLACEMENT_LIBRARY = {
         "target_idx_pair_in_pattern": (0, 1),
         "candidates": [
             {"edit_type": "reduce_bond", "name": "saturated (C-C single bond)",
-             "rationale": "알파,베타-불포화 카르보닐의 C=C 이중결합을 환원하여 "
+             "rationale": "[참고] 에타크린산처럼 시스테인 잔기와의 공유결합 자체가 "
+                          "작용 메커니즘인 공유결합 억제제(covalent inhibitor) "
+                          "계열에는 본 경고가 그대로 적용되지 않을 수 있음. || "
+                          "알파,베타-불포화 카르보닐의 C=C 이중결합을 환원하여 "
                           "단백질 친전자성 부가반응(Michael addition, covalent "
                           "binding) 위험을 제거함"},
         ],
@@ -44,7 +51,11 @@ REPLACEMENT_LIBRARY = {
         "problem_smarts": "[Cl,Br,I]",
         "candidates": [
             {"smiles": "O", "name": "hydroxyl (alcohol)",
-             "rationale": "이탈기를 제거해 알킬화 반응성을 없앰, 극성은 유사하게 유지"},
+             "rationale": "[참고] 메클로르에타민, 사이클로포스파미드, 카머스틴, "
+                          "클로람부실 등 알킬화 항암제는 DNA 알킬화(반응성) 자체가 "
+                          "세포독성 치료 메커니즘이므로, 이 계열에는 본 치환이 "
+                          "적절하지 않음. || 이탈기를 제거해 알킬화 반응성을 없앰, "
+                          "극성은 유사하게 유지"},
             {"smiles": "F", "name": "fluorine",
              "rationale": "할로겐을 유지하되 C-F 결합은 강해 이탈기로 작용하지 않음, 입체적 크기도 유사"},
         ],
@@ -59,7 +70,12 @@ REPLACEMENT_LIBRARY = {
             {"edit_type": "add_substituent", "param": "C(=O)C",
              "target_idx_in_pattern": 0,
              "name": "acetamide (acylated amine)",
-             "rationale": "1차 방향족 아민을 아마이드로 아실화하여 N-hydroxylation 경로 자체를 차단"},
+             "rationale": "[참고] 설파계 항생제(설파닐아마이드, 설파메톡사졸 등)와 "
+                          "프로카인아마이드처럼 아닐린 골격이 반응성 대사가 아닌 "
+                          "안정적 형태로 널리 처방되어 온 사례가 다수 있음. 이 경우 "
+                          "특이체질 반응은 드물고 예측이 어려워, 본 경고를 절대적 "
+                          "배제 기준이 아닌 참고 신호로 해석해야 함. || 1차 방향족 "
+                          "아민을 아마이드로 아실화하여 N-hydroxylation 경로 자체를 차단"},
             {"edit_type": "replace_ring", "param": "[*:1]C12CC(C1)(C2)[*:2]",
              "ring_atom_indices_in_pattern": [1, 2, 3, 4, 6, 7],
              "anchor_indices_in_pattern": (0, 5),
@@ -77,9 +93,15 @@ REPLACEMENT_LIBRARY = {
         "problem_smarts": "S(=O)(=O)[OX2H1,OX1-]",
         "candidates": [
             {"smiles": "S(=O)(=O)N", "name": "sulfonamide",
-             "rationale": "생리적 pH에서 이온화 정도(전하)를 크게 낮춰 세포막 투과성을 "
-                          "개선함. 설폰산은 대부분 음이온 상태로 존재해 경구 흡수가 "
-                          "저해되는 경우가 많으나, 설폰아마이드는 유사한 골격을 유지하면서도 "
+             "rationale": "[참고] 암페타민 설페이트, 사퀴나비르 메실레이트처럼 "
+                          "일부 승인약물에서 설폰산/설폰산 유사기는 활성 골격이 "
+                          "아니라 염(salt) 형성을 위한 카운터이온으로만 존재함. "
+                          "이 경우 본 규칙이 다루는 '독성 유발 골격'과 무관하므로, "
+                          "치환 대상 여부를 판단하기 전에 이 산이 활성 골격의 "
+                          "일부인지 염 형성용인지 구분이 필요함. || 생리적 pH에서 "
+                          "이온화 정도(전하)를 크게 낮춰 세포막 투과성을 개선함. "
+                          "설폰산은 대부분 음이온 상태로 존재해 경구 흡수가 저해되는 "
+                          "경우가 많으나, 설폰아마이드는 유사한 골격을 유지하면서도 "
                           "중성에 가까워 약물유사성이 개선됨"},
             {"smiles": "C(=O)O", "name": "carboxylic acid",
              "rationale": "설폰산보다 산성도가 약하고 부피가 작은 산성 bioisostere "
@@ -116,11 +138,14 @@ REPLACEMENT_LIBRARY = {
         "target_idx_in_pattern": 0,
         "candidates": [
             {"edit_type": "add_substituent", "param": "C", "name": "methoxy",
-             "rationale": "인체의 COMT(catechol-O-methyltransferase) 효소가 카테콜을 "
-                          "메톡시페놀로 메틸화하여 해독하는 생리적 경로와 동일한 원리. "
-                          "오르토-퀴논으로의 산화 경로를 차단하여 세포독성/유전독성 우려를 "
-                          "낮춤 (학생 확인 예정: ScienceDirect catechol overview, "
-                          "PMC6643002 등 참고)"},
+             "rationale": "[참고] 도파민, 에피네프린, 이소프로테레놀 등 카테콜아민류 "
+                          "약물은 카테콜 구조 자체가 아드레날린/도파민 수용체 결합에 "
+                          "필수적인 약효 골격이므로, 이 경우 본 치환은 독성 감소가 "
+                          "아니라 약효 상실로 이어짐. || 인체의 COMT(catechol-O-"
+                          "methyltransferase) 효소가 카테콜을 메톡시페놀로 메틸화하여 "
+                          "해독하는 생리적 경로와 동일한 원리. 오르토-퀴논으로의 산화 "
+                          "경로를 차단하여 세포독성/유전독성 우려를 낮춤 (학생 확인 "
+                          "예정: ScienceDirect catechol overview, PMC6643002 등 참고)"},
         ],
     },
     "Thiocarbonyl_group": {
@@ -129,10 +154,14 @@ REPLACEMENT_LIBRARY = {
         "target_idx_in_pattern": 1,
         "candidates": [
             {"edit_type": "replace_element", "param": 8, "name": "carbonyl (O replacing S)",
-             "rationale": "황을 산소로 대체(티오카르보닐->카르보닐)하는 것은 흔한 "
-                          "bioisostere 전략으로, 갑상선 기능 저해 등 황 함유 작용기 "
-                          "특유의 대사/독성 우려를 낮춤 (검증 필요, thiourea->urea "
-                          "치환 논리와 동일 계열)"},
+             "rationale": "[참고] 티오펜탈·티아밀랄(치오바르비투레이트, C=S가 지용성 "
+                          "증가로 빠른 마취효과에 기여)과 티오구아닌(퓨린 유사 항대사물, "
+                          "황이 작용기전에 필수)처럼 황 원자가 약효/효력에 직접 "
+                          "기여하는 경우가 있어, 이 계열에는 본 치환이 부적절할 수 "
+                          "있음. || 황을 산소로 대체(티오카르보닐->카르보닐)하는 것은 "
+                          "흔한 bioisostere 전략으로, 갑상선 기능 저해 등 황 함유 "
+                          "작용기 특유의 대사/독성 우려를 낮춤 (검증 필요, "
+                          "thiourea->urea 치환 논리와 동일 계열)"},
         ],
     },
     "thiol_2": {
@@ -176,6 +205,22 @@ REPLACEMENT_LIBRARY = {
                           "쉽게 분해되며 대사 불안정성을 일으킴. 알콕시기 하나를 제거하고 "
                           "남은 산소를 카르보닐로 승격시켜, 가수분해로 어차피 도달할 "
                           "안정한 최종 형태로 미리 전환함 (검증 필요)"},
+        ],
+    },
+    "hydroquinone": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[OX2H]c1ccc([OX2H,NX3H1,NX3H2])cc1",
+        "target_idx_in_pattern": 0,
+        "candidates": [
+            {"edit_type": "add_substituent", "param": "C", "name": "methoxy",
+             "rationale": "[참고] 아세트아미노펜은 정상 용량에서는 안전하며 과다복용 "
+                          "시에만 위험한 용량 의존적 사례임. 본 시스템은 치료지수를 "
+                          "고려하지 않으므로, 아트로핀·디곡신·와파린처럼 좁은 치료지수를 "
+                          "가진 기존 약물 전반에 유사하게 적용되는 한계임. || 파라 "
+                          "위치에 OH와 (OH 또는 NH)가 있는 구조(하이드로퀴논/파라-"
+                          "아미노페놀 계열)는 산화되어 파라-퀴논 또는 파라-퀴논이민(예: "
+                          "아세트아미노펜의 NAPQI)을 형성, 글루타치온 고갈과 단백질 "
+                          "공유결합을 통한 간독성 위험이 있음"},
         ],
     },
 }

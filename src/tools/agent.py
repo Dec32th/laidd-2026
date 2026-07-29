@@ -58,13 +58,22 @@ def ask_llm_which_problem_to_fix(client, model_name, smiles, problems, client_ty
 
 
 def ask_llm_which_candidate_to_use(client, model_name, smiles, rule_name, client_type="gemini"):
-    """한 문제(rule_name)에 대한 여러 치환 후보 중 어떤 걸 쓸지 LLM에게 판단 요청."""
+    """한 문제(rule_name)에 대한 여러 치환 후보 중 어떤 걸 쓸지 LLM에게 판단 요청.
+
+    candidate의 rationale 중 하나라도 '[참고]'로 시작하는 문구가 있으면,
+    이는 실제 승인약물 사례에서 이 골격이 안전하게 쓰인 경우가 있다는 뜻이므로,
+    candidate가 1개뿐이더라도(원래는 LLM 호출을 건너뛰던 경우) 반드시 LLM에게
+    판단을 맡긴다. 이 경우 LLM은 candidate_idx로 -1을 반환하여 "치환을
+    보류하고 사람(연구자) 검토가 필요하다"고 명시적으로 표시할 수 있다.
+    """
     info = get_replacement_candidates(rule_name)
     if info is None:
         return None
 
     candidates = info['candidates']
-    if len(candidates) == 1:
+    has_caution = any('[참고]' in c.get('rationale', '') for c in candidates)
+
+    if len(candidates) == 1 and not has_caution:
         return {"candidate_idx": 0, "reason": "유일한 후보"}
 
     candidate_info = [
@@ -73,23 +82,34 @@ def ask_llm_which_candidate_to_use(client, model_name, smiles, rule_name, client
     ]
 
     prompt = f"""당신은 신약개발 화학자입니다. 다음 분자에서 '{rule_name}' 문제를
-해결하기 위한 여러 치환 후보가 있습니다.
+해결하기 위한 치환 후보가 있습니다.
 
 분자 SMILES: {smiles}
 
 치환 후보들:
 {json.dumps(candidate_info, ensure_ascii=False, indent=2)}
 
-이 중 이 분자 맥락에서 가장 적절한 후보를 선택하고,
+각 후보의 rationale에 "[참고]"로 시작하는 문구가 있다면, 이는 "이 골격이
+실제 승인 약물에서 반응성이 아닌 안정적 형태로 널리 쓰인 사례가 있으니,
+경고를 절대적 기준이 아닌 참고 신호로 해석하라"는 뜻입니다. 이 경우 먼저
+"이 분자가 그 참고사항이 가리키는 안전한 사용 사례와 실제로 유사한지"를
+판단하세요.
+- 유사하다고 판단되면서, 후보가 여러 개라면 변화 폭이 더 작은 후보를 선택하세요.
+- 유사하다고 판단되고, 치환 자체가 불필요하다고 볼 만큼 뚜렷하다면,
+  candidate_idx를 -1로 답해 "치환 보류, 사람 검토 필요"를 표시하세요.
+- 참고사항이 없거나 이 분자가 그 사례와 유사하지 않다면, 평소대로 가장
+  적절한 후보를 선택하세요.
+
 반드시 아래 JSON 형식으로만 답하세요. 다른 설명 없이 JSON만 출력하세요.
 
-{{"candidate_idx": 선택한 후보의 idx(정수), "reason": "선택 이유 한 문장"}}
+{{"candidate_idx": 선택한 후보의 idx(정수, 또는 보류 시 -1), "reason": "판단 이유 한 문장"}}
 """
 
     text = _call_llm(client, model_name, prompt, client_type)
     fallback = {"candidate_idx": 0, "reason": "JSON 파싱 실패, 기본값(첫 번째 후보) 사용"}
     result = _parse_json_response(text, fallback)
 
-    if not isinstance(result.get('candidate_idx'), int) or not (0 <= result['candidate_idx'] < len(candidates)):
+    idx = result.get('candidate_idx')
+    if not isinstance(idx, int) or not (-1 <= idx < len(candidates)):
         return {"candidate_idx": 0, "reason": "LLM 응답 idx 범위 오류, 기본값 사용"}
     return result
