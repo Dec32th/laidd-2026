@@ -250,6 +250,20 @@ REPLACEMENT_LIBRARY = {
                           "diol)로 전환, 반응성을 제거함"},
         ],
     },
+    "diketo_group": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "C(=O)C(=O)",
+        "target_idx_pair_in_pattern": (0, 1),
+        "candidates": [
+            {"edit_type": "reduce_bond", "name": "alpha-hydroxy ketone (reduced)",
+             "rationale": "비시날 알파-디케톤(1,2-diketone)은 반응성이 높은 친전자체로 "
+                          "단백질과 부가물을 형성할 수 있으며, 흡입 시 호흡기 독성을 "
+                          "일으키는 것으로 알려진 디아세틸(버터향 첨가제) 사례가 대표적임. "
+                          "카르보닐 하나를 환원하여 알파-하이드록시케톤(아실로인)으로 "
+                          "전환, 케토-환원효소에 의한 실제 해독 경로와 유사한 방향으로 "
+                          "반응성을 낮춤 (검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
