@@ -392,6 +392,37 @@ REPLACEMENT_LIBRARY = {
                           "안트라퀴논 등 융합고리형은 미지원)"},
         ],
     },
+    "quinone_A_anthraquinone": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "O=C1c2ccccc2C(=O)c2ccccc21",
+        "target_pairs_in_pattern": [(1, 0), (8, 9)],
+        "ring_atoms_in_pattern": [1, 2, 3, 4, 5, 6, 7, 8],
+        "ring_bonds_in_pattern": [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 1)],
+        "candidates": [
+            {"edit_type": "reduce_multi_bond", "name": "anthrahydroquinone (reduced, re-aromatized)",
+             "rationale": "안트라퀴논은 벤조퀴논과 동일한 산화환원 사이클링(redox cycling) 메커니즘을 "
+                          "가지되, 두 벤젠 고리에 의해 안정화되어 항암제(독소루비신 등) 및 염료에서도 "
+                          "흔히 쓰이는 골격임. 두 카르보닐을 동시에 환원하고 중앙 고리를 재방향족화하여 "
+                          "안트라하이드로퀴논으로 전환, 산화환원 사이클링 능력을 제거함. 결과물이 "
+                          "hydroquinone 규칙에 해당할 수 있어 반복 루프가 자동으로 추가 개선 가능 "
+                          "(Murcko scaffold 분석으로 발견, 검증 필요)"},
+        ],
+    },
+    "quinone_diimine": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "N=C1C=CC(=N)C=C1",
+        "target_pairs_in_pattern": [(1, 0), (4, 5)],
+        "ring_atoms_in_pattern": [1, 2, 3, 4, 6, 7],
+        "ring_bonds_in_pattern": [(1, 2), (2, 3), (3, 4), (4, 6), (6, 7), (7, 1)],
+        "candidates": [
+            {"edit_type": "reduce_multi_bond", "name": "phenylenediamine (reduced, re-aromatized)",
+             "rationale": "퀴논디이민(quinone diimine)은 벤조퀴논의 산소가 이민으로 치환된 유사체로, "
+                          "동일한 산화환원 사이클링 메커니즘을 가지며 헤어염료 성분(파라페닐렌디아민 "
+                          "산화형) 등에서 피부 알레르기 및 접촉성 피부염을 유발하는 것으로 알려짐. 두 "
+                          "이민을 동시에 환원하고 고리를 재방향족화하여 페닐렌디아민(원래의 안정한 "
+                          "환원형)으로 전환 (Murcko scaffold 분석으로 발견, 검증 필요)"},
+        ],
+    },
     "isocyanate": {
         "edit_method": "atom_edit",
         "problem_smarts": "[NX2]=[CX2]=[OX1]",

@@ -1,3 +1,4 @@
+
 from rdkit import Chem
 
 
@@ -82,7 +83,7 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             bidx1, bidx2 = match[b1], match[b2]
             rbond = rwmol.GetBondBetweenAtoms(bidx1, bidx2)
             if rbond is None:
-                return None
+                continue
             rbond.SetBondType(Chem.BondType.AROMATIC)
             rbond.SetIsAromatic(True)
 

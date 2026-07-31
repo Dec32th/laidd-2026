@@ -224,3 +224,8 @@ __marimo__/
 *.pkl
 data/ames.tab
 data/*.tab
+
+*.fragdb
+*.mmpdb
+tox21_*.smi
+tox21_*_properties.csv
