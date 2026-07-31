@@ -59,11 +59,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             atom.SetNoImplicit(False)
 
     elif edit_type == "reduce_multi_bond":
-        # 여러 이중결합(예: 퀴논의 두 카르보닐)을 동시에 환원하면서, 고리를
-        # 방향족으로 재선언하여 RDKit이 유효한 케쿨레 구조(교대 이중결합
-        # 배치)를 스스로 찾도록 함. 카르보닐 탄소는 수소를 받지 않고,
-        # 반대편 산소만 수소를 받아 하이드록실이 됨(화학적으로 정확한
-        # 전자 재배치를 반영).
         pairs = candidate.get("target_pairs_in_pattern", info.get("target_pairs_in_pattern"))
         ring_atoms_pattern = candidate.get("ring_atoms_in_pattern", info.get("ring_atoms_in_pattern"))
         ring_bonds_pattern = candidate.get("ring_bonds_in_pattern", info.get("ring_bonds_in_pattern"))
@@ -218,6 +213,17 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         anchor_idx1 = match[anchor_key[0]]
         anchor_idx2 = match[anchor_key[1]]
 
+        # 안전장치: 고리 원자가 anchor 2개 외에 다른 치환기(메틸기 등)를
+        # 갖고 있으면, 그 치환기가 고아가 되어 분자가 조각나므로 치환을
+        # 거부한다 (다중 BCP 치환 조각화 버그 재발 방지)
+        ring_set = set(ring_indices)
+        for ridx in ring_indices:
+            ratom = mol.GetAtomWithIdx(ridx)
+            for n in ratom.GetNeighbors():
+                nidx = n.GetIdx()
+                if nidx not in ring_set and nidx not in (anchor_idx1, anchor_idx2):
+                    return None
+
         anchor1_ring_neighbor = None
         anchor2_ring_neighbor = None
         for ridx in ring_indices:
@@ -287,6 +293,10 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
     check_mol = Chem.MolFromSmiles(new_smiles)
     is_valid = check_mol is not None
     if is_valid:
+        # 다중 조각(fragment) 방지: 결과가 여러 개의 분리된 분자로
+        # 나뉘었으면 안전장치가 놓친 조각화로 간주해 무효 처리
+        if '.' in new_smiles:
+            is_valid = False
         for atom in check_mol.GetAtoms():
             if (atom.GetNoImplicit() and atom.GetFormalCharge() == 0
                     and atom.GetSymbol() in ('C', 'N', 'O')
