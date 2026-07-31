@@ -1,0 +1,182 @@
+[
+  {
+    "original": "Nc1ccc2cc3ccc(N)cc3nc2c1",
+    "rule_final": "CC(=O)Nc1ccc2cc3ccc(NC(C)=O)cc3nc2c1",
+    "rule_status": "no_known_fix",
+    "rule_steps": 2,
+    "llm_final": "CC(=O)Nc1ccc2cc3ccc(NC(C)=O)cc3nc2c1",
+    "llm_status": "no_known_fix",
+    "llm_steps": 2
+  },
+  {
+    "original": "COc1cc(C=O)cc2c1[C@H](COC(N)=O)[C@]1(OC(C)=O)ON2C[C@H]2[C@@H]1N2C(C)=O",
+    "rule_final": "COc1cc(C(N)=O)cc2c1[C@H](COC(N)=O)[C@]1(OC(C)=O)ON2C[C@H]2[C@@H]1N2C(C)=O",
+    "rule_status": "stuck",
+    "rule_steps": 1,
+    "llm_final": "COc1cc(C=O)cc2c1[C@H](COC(N)=O)[C@]1(OC(C)=O)ON2C[C@H]2[C@@H]1N2C(C)=O",
+    "llm_status": "stuck",
+    "llm_steps": 0
+  },
+  {
+    "original": "O=C1/C(=C2\\Nc3ccc(S(=O)(=O)[O-])cc3C2=O)Nc2ccc(S(=O)(=O)[O-])cc21",
+    "rule_final": "NS(=O)(=O)c1ccc2c(c1)C(=O)C(C1Nc3ccc(S(N)(=O)=O)cc3C1=O)N2",
+    "rule_status": "success",
+    "rule_steps": 3,
+    "llm_final": "NS(=O)(=O)c1ccc2c(c1)C(=O)C(C1Nc3ccc(S(N)(=O)=O)cc3C1=O)N2",
+    "llm_status": "success",
+    "llm_steps": 3
+  },
+  {
+    "original": "COc1cc(-c2ccc(N=C=O)c(OC)c2)ccc1N=C=O",
+    "rule_final": "COc1cc(-c2ccc(N=C=O)c(OC)c2)ccc1N=C=O",
+    "rule_status": "stuck",
+    "rule_steps": 0,
+    "llm_final": "COc1cc(-c2ccc(NC(C)=O)c(OC)c2)ccc1NC(C)=O",
+    "llm_status": "success",
+    "llm_steps": 4
+  },
+  {
+    "original": "Cc1cc(-c2cc(C)c(N)c(C)c2)cc(C)c1N",
+    "rule_final": "CC(=O)Nc1c(C)cc(-c2cc(C)c(NC(C)=O)c(C)c2)cc1C",
+    "rule_status": "success",
+    "rule_steps": 2,
+    "llm_final": "Cc1cc(-c2cc(C)c(N)c(C)c2)cc(C)c1N",
+    "llm_status": "stuck",
+    "llm_steps": 0
+  },
+  {
+    "original": "ClC1=C(Cl)[C@]2(Cl)[C@@H]3[C@@H]4C[C@H]([C@@H]3[C@@]1(Cl)C2(Cl)Cl)[C@H]1O[C@@H]41",
+    "rule_final": "O=C1[C@]2(O)C(O)=C(O)[C@@]1(O)[C@H]1[C@H]3C[C@H]([C@H](O)[C@@H]3O)[C@H]12",
+    "rule_status": "no_known_fix",
+    "rule_steps": 8,
+    "llm_final": "O[C@@H]1[C@H](O)[C@@H]2C[C@H]1[C@@H]1[C@H]2[C@]2(F)C(F)=C(F)[C@@]1(F)C2(F)F",
+    "llm_status": "no_known_fix",
+    "llm_steps": 7
+  },
+  {
+    "original": "O=NN(CCCl)C(=O)NC1CCCCC1",
+    "rule_final": "O=C(NC1CCCCC1)N(CCO)NO",
+    "rule_status": "no_known_fix",
+    "rule_steps": 2,
+    "llm_final": "O=C(NC1CCCCC1)N(CCF)NO",
+    "llm_status": "no_known_fix",
+    "llm_steps": 2
+  },
+  {
+    "original": "CN=C=O",
+    "rule_final": "CN=C=O",
+    "rule_status": "stuck",
+    "rule_steps": 0,
+    "llm_final": "CN",
+    "llm_status": "success",
+    "llm_steps": 1
+  },
+  {
+    "original": "Nc1ccc2c(O)cc(S(=O)(=O)O)cc2c1",
+    "rule_final": "CC(=O)Nc1ccc2c(O)cc(S(N)(=O)=O)cc2c1",
+    "rule_status": "success",
+    "rule_steps": 2,
+    "llm_final": "CC(=O)Nc1ccc2c(O)cc(S(N)(=O)=O)cc2c1",
+    "llm_status": "success",
+    "llm_steps": 2
+  },
+  {
+    "original": "COC(=O)N/N=C/c1c[n+]([O-])c2ccccc2[n+]1[O-]",
+    "rule_final": "COC(=O)NNCc1c[nH+]c2ccccc2[nH+]1",
+    "rule_status": "no_known_fix",
+    "rule_steps": 3,
+    "llm_final": "COC(=O)NNCc1c[nH+]c2ccccc2[nH+]1",
+    "llm_status": "no_known_fix",
+    "llm_steps": 3
+  },
+  {
+    "original": "O=[N+]([O-])c1ccc(CBr)cc1",
+    "rule_final": "CC(=O)Nc1ccc(CO)cc1",
+    "rule_status": "success",
+    "rule_steps": 3,
+    "llm_final": "N#Cc1ccc(CF)cc1",
+    "llm_status": "success",
+    "llm_steps": 2
+  },
+  {
+    "original": "S=C(SSC(=S)N1CCCCC1)N1CCCCC1",
+    "rule_final": "S=C(SSC(=S)N1CCCCC1)N1CCCCC1",
+    "rule_status": "stuck",
+    "rule_steps": 0,
+    "llm_final": "S=C(SSC(=S)N1CCCCC1)N1CCCCC1",
+    "llm_status": "stuck",
+    "llm_steps": 0
+  },
+  {
+    "original": "O=C/C(Cl)=C(/Cl)C(=O)O",
+    "rule_final": "NC(=O)C(O)C(O)C(=O)O",
+    "rule_status": "success",
+    "rule_steps": 4,
+    "llm_final": "NC(=O)C(F)C(F)C(=O)O",
+    "llm_status": "success",
+    "llm_steps": 4
+  },
+  {
+    "original": "CCC1OC(=O)C[C@@H](O)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@@H](CC=O)C[C@@H](C)C(=O)C=C[C@]2(C)OC2C1C",
+    "rule_final": "CCC1OC(=O)C[C@@H](O)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@@H](CC(N)=O)C[C@@H](C)C(=O)C=C[C@](C)(O)C(O)C1C",
+    "rule_status": "success",
+    "rule_steps": 2,
+    "llm_final": "CCC1OC(=O)C[C@@H](O)[C@H](C)[C@@H](O[C@@H]2O[C@H](C)C[C@H](N(C)C)[C@H]2O)[C@@H](CCO)C[C@@H](C)C(=O)C=C[C@](C)(O)C(O)C1C",
+    "llm_status": "success",
+    "llm_steps": 2
+  },
+  {
+    "original": "CC(C)OC(=S)[S-]",
+    "rule_final": "CC(C)OC(=O)[S-]",
+    "rule_status": "stuck",
+    "rule_steps": 1,
+    "llm_final": "CC(C)OC(N)=O",
+    "llm_status": "success",
+    "llm_steps": 1
+  },
+  {
+    "original": "CCCCCCCCOS(=O)(=O)[O-]",
+    "rule_final": "CCCCCCCCOS(=O)(=O)[O-]",
+    "rule_status": "stuck",
+    "rule_steps": 0,
+    "llm_final": "CCCCCCCCO",
+    "llm_status": "no_known_fix",
+    "llm_steps": 1
+  },
+  {
+    "original": "Nc1ccc(N)c2c1C(=O)c1ccccc1C2=O",
+    "rule_final": "Nc1ccc(N)c2c1C(=O)c1ccccc1C2=O",
+    "rule_status": "stuck",
+    "rule_steps": 0,
+    "llm_final": "Nc1ccc(N)c2c1C(=O)c1ccccc1C2=O",
+    "llm_status": "stuck",
+    "llm_steps": 0
+  },
+  {
+    "original": "CC1=NN(c2cc(Cl)c(S(=O)(=O)[O-])cc2Cl)C(=O)C1/N=N/c1ccc(S(=O)(=O)[O-])cc1",
+    "rule_final": "CC1=NN(c2cc(Cl)c(S(N)(=O)=O)cc2Cl)C(=O)C1NNc1ccc(S(N)(=O)=O)cc1",
+    "rule_status": "no_known_fix",
+    "rule_steps": 3,
+    "llm_final": "CC1=NN(c2cc(Cl)c(S(N)(=O)=O)cc2Cl)C(=O)C1NNc1ccc(S(N)(=O)=O)cc1",
+    "llm_status": "no_known_fix",
+    "llm_steps": 3
+  },
+  {
+    "original": "O=S(=O)([O-])c1ccc(N=Nc2c(O)ccc3ccccc23)cc1",
+    "rule_final": "O=S(=O)([O-])c1ccc(NNc2c(O)ccc3ccccc23)cc1",
+    "rule_status": "stuck",
+    "rule_steps": 1,
+    "llm_final": "O=S(=O)([O-])c1ccc(NNc2c(O)ccc3ccccc23)cc1",
+    "llm_status": "stuck",
+    "llm_steps": 1
+  },
+  {
+    "original": "Cc1ccc(N)cc1[N+](=O)[O-]",
+    "rule_final": "CC(=O)Nc1ccc(C)c(N)c1",
+    "rule_status": "success",
+    "rule_steps": 2,
+    "llm_final": "CC(=O)Nc1ccc(C)c(S(N)(=O)=O)c1",
+    "llm_status": "success",
+    "llm_steps": 2
+  }
+]

@@ -293,9 +293,7 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
     check_mol = Chem.MolFromSmiles(new_smiles)
     is_valid = check_mol is not None
     if is_valid:
-        # 다중 조각(fragment) 방지: 결과가 여러 개의 분리된 분자로
-        # 나뉘었으면 안전장치가 놓친 조각화로 간주해 무효 처리
-        if '.' in new_smiles:
+        if edit_type != "cleave_bond" and '.' in new_smiles:
             is_valid = False
         for atom in check_mol.GetAtoms():
             if (atom.GetNoImplicit() and atom.GetFormalCharge() == 0
