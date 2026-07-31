@@ -90,7 +90,7 @@ REPLACEMENT_LIBRARY = {
         ],
     },
     "Sulfonic_acid_2": {
-        "problem_smarts": "S(=O)(=O)[OX2H1,OX1-]",
+        "problem_smarts": "[#6]S(=O)(=O)[OX2H1,OX1-]",
         "candidates": [
             {"smiles": "S(=O)(=O)N", "name": "sulfonamide",
              "rationale": "[참고] 암페타민 설페이트, 사퀴나비르 메실레이트처럼 "
@@ -175,7 +175,7 @@ REPLACEMENT_LIBRARY = {
                           "흔히 쓰이는 안정적 작용기로 전환 (검증 필요)"},
         ],
     },
-    "thiol_1": {
+    "thiol_1_dithiocarbamate": {
         "edit_method": "atom_edit",
         "problem_smarts": "C(=S)[SX1-]",
         "candidates": [
@@ -189,6 +189,17 @@ REPLACEMENT_LIBRARY = {
                           "전환. 두 황 원자를 각각 산소·질소로 교체하여 금속 킬레이팅 "
                           "능력과 효소 억제 활성(디티오카바메이트류 특유의 살충제성 "
                           "독성 기전)을 제거함 (검증 필요)"},
+        ],
+    },
+    "thiol_1_thiocarboxylate": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[SX1-]C(=O)",
+        "target_idx_in_pattern": 0,
+        "candidates": [
+            {"edit_type": "replace_element", "param": 8, "name": "carboxylate (O replacing S)",
+             "rationale": "티오카르복실산 음이온(R-C(=O)-S-)의 황을 산소로 대체하여 "
+                          "카르복실산염(R-C(=O)-O-)으로 전환. 황 원자의 금속 킬레이팅 "
+                          "및 친핵성 반응성을 제거함 (검증 필요)"},
         ],
     },
     "het-C-het_not_in_ring": {
@@ -387,15 +398,15 @@ REPLACEMENT_LIBRARY = {
         "center_idx_in_pattern": 0,
         "candidates": [
             {"edit_type": "remove_atom",
-            "remove_idx_in_pattern": 1,
-            "center_idx_in_pattern": 0,
-            "name": "amine (NCO hydrolyzed)",
-            "rationale": "이소시아네이트(R-N=C=O)는 매우 반응성이 높은 친전자체로, "
-                      "단백질/아미노기와 쉽게 부가반응을 일으켜 직업성 천식·과민증을 "
-                      "유발하는 것으로 잘 알려짐(TDI, MDI 등 산업용 이소시아네이트 "
-                      "사례). 체내/환경에서 실제로 일어나는 가수분해 경로(R-NCO + H2O "
-                      "-> R-NH2 + CO2)와 동일하게 카르보닐 탄소와 산소를 제거하고 "
-                      "질소만 남겨 아민으로 전환 (검증 필요)"},
+             "remove_idx_in_pattern": 1,
+             "center_idx_in_pattern": 0,
+             "name": "amine (NCO hydrolyzed)",
+             "rationale": "이소시아네이트(R-N=C=O)는 매우 반응성이 높은 친전자체로, "
+                          "단백질/아미노기와 쉽게 부가반응을 일으켜 직업성 천식·과민증을 "
+                          "유발하는 것으로 잘 알려짐(TDI, MDI 등 산업용 이소시아네이트 "
+                          "사례). 체내/환경에서 실제로 일어나는 가수분해 경로(R-NCO + H2O "
+                          "-> R-NH2 + CO2)와 동일하게 카르보닐 탄소와 산소를 제거하고 "
+                          "질소만 남겨 아민으로 전환 (검증 필요)"},
         ],
     },
     "triple_bond": {
@@ -404,12 +415,12 @@ REPLACEMENT_LIBRARY = {
         "target_idx_pair_in_pattern": (0, 1),
         "candidates": [
             {"edit_type": "reduce_bond", "name": "alkene (partially reduced)",
-            "rationale": "말단 알카인(삼중결합)은 CYP450 효소에 의해 기계기반 억제"
-                      "(mechanism-based inhibition) 경로로 대사되며, 반응성 케텐/"
-                      "에폭사이드 중간체를 형성해 효소를 비가역적으로 불활성화할 "
-                      "수 있음(에티닐에스트라디올 등에서 알려진 메커니즘). 삼중결합을 "
-                      "이중결합으로 환원하여 반응성을 낮춤 (검증 필요, 완전 포화가 "
-                      "아닌 부분 환원)"},
+             "rationale": "말단 알카인(삼중결합)은 CYP450 효소에 의해 기계기반 억제"
+                          "(mechanism-based inhibition) 경로로 대사되며, 반응성 케텐/"
+                          "에폭사이드 중간체를 형성해 효소를 비가역적으로 불활성화할 "
+                          "수 있음(에티닐에스트라디올 등에서 알려진 메커니즘). 삼중결합을 "
+                          "이중결합으로 환원하여 반응성을 낮춤 (검증 필요, 완전 포화가 "
+                          "아닌 부분 환원)"},
         ],
     },
     "stilbene": {
@@ -418,11 +429,11 @@ REPLACEMENT_LIBRARY = {
         "target_idx_pair_in_pattern": (1, 2),
         "candidates": [
             {"edit_type": "reduce_bond", "name": "diarylethane (reduced)",
-            "rationale": "스틸벤 구조(두 방향족 고리를 잇는 C=C)는 디에틸스틸베스트롤"
-                      "(DES)처럼 내분비교란 및 대사 산화를 통한 반응성 중간체 형성이 "
-                      "알려진 골격. 이중결합을 환원하여 평면성을 낮추고 대사 반응성을 "
-                      "완화함 (검증 필요, 에스트로겐 수용체 결합에 필요한 형태 자체를 "
-                      "훼손할 수 있어 신중한 해석 필요)"},
+             "rationale": "스틸벤 구조(두 방향족 고리를 잇는 C=C)는 디에틸스틸베스트롤"
+                          "(DES)처럼 내분비교란 및 대사 산화를 통한 반응성 중간체 형성이 "
+                          "알려진 골격. 이중결합을 환원하여 평면성을 낮추고 대사 반응성을 "
+                          "완화함 (검증 필요, 에스트로겐 수용체 결합에 필요한 형태 자체를 "
+                          "훼손할 수 있어 신중한 해석 필요)"},
         ],
     },
     "beta-keto/anhydride": {
@@ -431,15 +442,15 @@ REPLACEMENT_LIBRARY = {
         "center_idx_in_pattern": 2,
         "candidates": [
             {"edit_type": "remove_atom",
-            "remove_idx_in_pattern": 3,
-            "center_idx_in_pattern": 2,
-            "name": "carboxylic acid (anhydride hydrolyzed)",
-            "rationale": "산 무수물(R-C(=O)-O-C(=O)-R')은 강한 아실화제로 단백질 아미노산 "
-                      "잔기와 쉽게 반응하며, 수용액 환경에서 자발적으로 가수분해되어 "
-                      "두 개의 카르복실산으로 분해되는 것이 자연스러운 무독화 경로임. "
-                      "한쪽 아실기를 제거하여 이 가수분해 최종형(카르복실산)으로 직접 "
-                      "전환 (검증 필요). ※ 대안 후보(무수물->아마이드/이미드 bioisostere) "
-                      "는 문헌 확인 후 추가 예정"},
+             "remove_idx_in_pattern": 3,
+             "center_idx_in_pattern": 2,
+             "name": "carboxylic acid (anhydride hydrolyzed)",
+             "rationale": "산 무수물(R-C(=O)-O-C(=O)-R')은 강한 아실화제로 단백질 아미노산 "
+                          "잔기와 쉽게 반응하며, 수용액 환경에서 자발적으로 가수분해되어 "
+                          "두 개의 카르복실산으로 분해되는 것이 자연스러운 무독화 경로임. "
+                          "한쪽 아실기를 제거하여 이 가수분해 최종형(카르복실산)으로 직접 "
+                          "전환 (검증 필요). ※ 대안 후보(무수물->아마이드/이미드 bioisostere) "
+                          "는 문헌 확인 후 추가 예정"},
         ],
     },
 }

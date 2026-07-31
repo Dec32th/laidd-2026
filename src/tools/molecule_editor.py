@@ -13,10 +13,6 @@ def _check_and_match(part_smiles, problem_pattern, pattern_size):
 
 
 def find_core_and_target(smiles: str, rule_name: str):
-    """분자에서 rule_name에 해당하는 문제구조를 담은 조각(target)과
-    나머지 뼈대(core)를 찾아서 반환.
-    1단계(maxCuts=1)로 단순 분리를 먼저 시도하고,
-    실패하면 2단계(maxCuts=2)로 고리 인접 작용기 분리를 시도한다."""
     info = get_replacement_candidates(rule_name)
     if info is None:
         return None
@@ -28,7 +24,6 @@ def find_core_and_target(smiles: str, rule_name: str):
     if mol is None:
         return None
 
-    # --- Case A: 단순 2조각 분리 (maxCuts=1) ---
     fragments1 = rdMMPA.FragmentMol(mol, maxCuts=1, resultsAsMols=False)
     for core, chain in fragments1:
         if core:
@@ -40,7 +35,6 @@ def find_core_and_target(smiles: str, rule_name: str):
             if _check_and_match(part, problem_pattern, pattern_size):
                 return {"core": parts[1 - i], "target_removed": part}
 
-    # --- Case B: 고리 인접 등, core가 남는 2-cut 분리 ---
     fragments2 = rdMMPA.FragmentMol(mol, maxCuts=2, resultsAsMols=False)
     for core, chain in fragments2:
         if not core:
@@ -105,7 +99,6 @@ def reassemble_molecule(core_smiles: str, rule_name: str, candidate_idx: int = 0
 
 
 def propose_fix(smiles: str, rule_name: str, candidate_idx: int = 0):
-    """규칙의 edit_method에 따라 결합절단형(기존) 또는 원자직접편집형(신규)으로 분기."""
     info = get_replacement_candidates(rule_name)
     if info is None:
         return None
@@ -127,12 +120,9 @@ def canonicalize(smiles: str):
 
 def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
                         llm_client=None, llm_model=None, llm_client_type="gemini"):
-    """진단->치환->재평가를 반복.
-    llm_client가 주어지면: 어떤 문제부터 고칠지 + 어떤 후보를 쓸지 둘 다 LLM이 판단.
-    llm_client_type: "gemini" 또는 "openai_compatible".
-    llm_client가 없으면: 리스트 순서(known_problems[0]) + candidate_idx 고정값 사용.
-    skipped_details/reason_detail: 연구자가 no_known_fix/stuck 사유를 바로
-    확인할 수 있도록 사람이 읽을 수 있는 설명과 매치된 원자 정보를 함께 제공."""
+    """진단->치환->재평가를 반복. known 규칙 중 우선순위가 가장 높은 것이
+    propose_fix에서 실패하면, stuck 처리 전에 같은 분자의 다른 known
+    규칙들을 순서대로 시도한다."""
     from src.tools.toxicophore_detector import detect_toxicophores
     from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
 
@@ -141,6 +131,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
     history = [{"step": 0, "smiles": current}]
     skipped_rules = []
     skipped_details = []
+    flagged_for_review = set()
 
     for step in range(1, max_iterations + 1):
         problems = detect_toxicophores(current)
@@ -150,8 +141,9 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             return {"status": "success", "final_smiles": current, "history": history,
                     "skipped_rules": skipped_rules, "skipped_details": skipped_details}
 
-        known_problems = [p for p in problems if get_replacement_candidates(p['rule_name']) is not None]
-        unknown_problems = [p for p in problems if p not in known_problems]
+        known_problems = [p for p in problems if get_replacement_candidates(p['rule_name']) is not None
+                          and p['rule_name'] not in flagged_for_review]
+        unknown_problems = [p for p in problems if get_replacement_candidates(p['rule_name']) is None]
 
         for p in unknown_problems:
             if p['rule_name'] not in skipped_rules:
@@ -174,27 +166,54 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
 
         if llm_client is not None:
             problem_decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems, client_type=llm_client_type)
-            target_rule = problem_decision['rule_name']
+            preferred_rule = problem_decision['rule_name']
             problem_reason = problem_decision.get('reason', '')
-
-            candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, target_rule, client_type=llm_client_type)
-            chosen_candidate_idx = candidate_decision['candidate_idx']
-            candidate_reason = candidate_decision.get('reason', '')
+            ordered_rules = [preferred_rule] + [p['rule_name'] for p in known_problems if p['rule_name'] != preferred_rule]
         else:
-            target_rule = known_problems[0]['rule_name']
             problem_reason = "규칙 기반(리스트 순서대로)"
-            chosen_candidate_idx = candidate_idx
-            candidate_reason = "규칙 기반(고정 인덱스)"
+            ordered_rules = [p['rule_name'] for p in known_problems]
 
-        fixed = propose_fix(current, target_rule, chosen_candidate_idx)
+        fixed = None
+        target_rule = None
+        candidate_reason = None
+        failed_attempts = []
 
-        if fixed is None or not fixed['is_valid']:
-            matched = next((p['atom_indices'] for p in problems if p['rule_name'] == target_rule), [])
-            reason_detail = (f"'{target_rule}' 규칙은 라이브러리에 있으나, 이 분자의 구체적 구조에서 "
-                              f"치환 실행이 실패했습니다. 흔한 원인: 유기금속/무기염 등 특수 화학종, "
-                              f"고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다. "
-                              f"매치된 원자: {matched}")
-            return {"status": "stuck", "reason": f"'{target_rule}' 치환 실패",
+        for candidate_rule in ordered_rules:
+            if llm_client is not None:
+                candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, candidate_rule, client_type=llm_client_type)
+                chosen_candidate_idx = candidate_decision['candidate_idx']
+                this_candidate_reason = candidate_decision.get('reason', '')
+
+                if chosen_candidate_idx == -1:
+                    flagged_for_review.add(candidate_rule)
+                    if candidate_rule not in skipped_rules:
+                        skipped_rules.append(candidate_rule)
+                    skipped_details.append({
+                        "rule_name": candidate_rule,
+                        "reason": f"LLM이 치환을 보류했습니다: {this_candidate_reason} "
+                                  f"(이 분자가 [참고] 사항에 해당하는 안전한 실사용 사례와 유사하다고 "
+                                  f"판단되어, 자동 치환 대신 연구자의 직접 검토를 권장합니다.)",
+                        "atom_indices": next((p['atom_indices'] for p in problems if p['rule_name'] == candidate_rule), []),
+                    })
+                    continue
+            else:
+                chosen_candidate_idx = candidate_idx
+                this_candidate_reason = "규칙 기반(고정 인덱스)"
+
+            attempt = propose_fix(current, candidate_rule, chosen_candidate_idx)
+            if attempt is not None and attempt.get('is_valid'):
+                fixed = attempt
+                target_rule = candidate_rule
+                candidate_reason = this_candidate_reason
+                break
+            else:
+                failed_attempts.append(candidate_rule)
+
+        if fixed is None:
+            reason_detail = (f"이 단계에서 known 규칙 {failed_attempts} 전부를 순서대로 시도했으나 "
+                              f"모두 실행에 실패했습니다. 흔한 원인: 유기금속/무기염 등 특수 화학종, "
+                              f"고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다.")
+            return {"status": "stuck", "reason": f"시도한 규칙 {failed_attempts} 모두 치환 실패",
                     "reason_detail": reason_detail,
                     "final_smiles": current, "history": history,
                     "skipped_rules": skipped_rules, "skipped_details": skipped_details}
