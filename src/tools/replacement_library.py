@@ -139,14 +139,17 @@ REPLACEMENT_LIBRARY = {
         "candidates": [
             {"edit_type": "add_substituent", "param": "C", "name": "methoxy",
              "rationale": "[참고] 도파민, 에피네프린, 이소프로테레놀 등 카테콜아민류 "
-                          "약물은 카테콜 구조 자체가 아드레날린/도파민 수용체 결합에 "
-                          "필수적인 약효 골격이므로, 이 경우 본 치환은 독성 감소가 "
-                          "아니라 약효 상실로 이어짐. || 인체의 COMT(catechol-O-"
-                          "methyltransferase) 효소가 카테콜을 메톡시페놀로 메틸화하여 "
-                          "해독하는 생리적 경로와 동일한 원리. 오르토-퀴논으로의 산화 "
-                          "경로를 차단하여 세포독성/유전독성 우려를 낮춤 (학생 확인 "
-                          "예정: ScienceDirect catechol overview, PMC6643002 등 참고)"},
-        ],
+                      "약물은 카테콜 구조 자체가 아드레날린/도파민 수용체 결합에 "
+                      "필수적인 약효 골격이므로, 이 경우 본 치환은 독성 감소가 "
+                      "아니라 약효 상실로 이어짐. 실제 도파민은 도파민 수용체 "
+                      "D1(Ki 4.3-5.6 nM), D2(Ki 4.7-7.2 nM), D3(Ki 6.4-7.3 nM)에 "
+                      "단자릿수 나노몰 수준의 강력한 작용제 친화도를 가짐(IUPHAR/BPS "
+                      "Guide to PHARMACOLOGY 확인). || 인체의 COMT(catechol-O-"
+                      "methyltransferase) 효소가 카테콜을 메톡시페놀로 메틸화하여 "
+                      "해독하는 생리적 경로와 동일한 원리. 오르토-퀴논으로의 산화 "
+                      "경로를 차단하여 세포독성/유전독성 우려를 낮춤 (학생 확인 "
+                      "예정: ScienceDirect catechol overview, PMC6643002 등 참고)"},
+         ],
     },
     "Thiocarbonyl_group": {
         "edit_method": "atom_edit",
