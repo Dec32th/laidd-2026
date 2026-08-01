@@ -487,6 +487,39 @@ REPLACEMENT_LIBRARY = {
                           "는 문헌 확인 후 추가 예정"},
         ],
     },
+    "phthalimide": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "O=C1c2ccccc2C(=O)N1[#6]",
+        "center_idx_in_pattern": 10,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 1,
+             "center_idx_in_pattern": 10,
+             "name": "primary amine (imide hydrolyzed)",
+             "rationale": "프탈이미드(고리형 이미드)는 탈리도마이드 등에서 알려진 골격으로, "
+                          "체내에서 가수분해되어 원래의 1차 아민과 프탈산으로 분해되는 것이 "
+                          "자연스러운 대사 경로임. 이 가수분해 용이성 자체가 대사 불안정성/"
+                          "반응성 우려의 근거이며, 고리 전체를 제거하여 이 가수분해 최종형인 "
+                          "1차 아민으로 직접 전환 (검증 필요)"},
+        ],
+    },
+    "hydroxamic_acid": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "C(=O)N[OX2H1]",
+        "center_idx_in_pattern": 2,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 3,
+             "center_idx_in_pattern": 2,
+             "name": "amide (N-hydroxyl removed)",
+             "rationale": "[참고] 하이드록삼산(R-C(=O)-NH-OH)은 보리노스타트, 파노비노스타트 "
+                          "등 HDAC 억제제에서 아연 킬레이션을 통한 핵심 약효 작용기로 쓰이므로, "
+                          "이 계열에는 본 치환이 약효 상실로 이어질 수 있음. || 하이드록삼산은 "
+                          "로센 재배열(Lossen rearrangement)을 통해 반응성 이소시아네이트로 "
+                          "전환될 수 있는 잠재적 위험이 있음. N-하이드록실기를 제거해 단순 "
+                          "아마이드로 전환, 이 재배열 경로를 차단함 (검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:
