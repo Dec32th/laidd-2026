@@ -10,6 +10,7 @@ def _build_catalog():
 _catalog = _build_catalog()
 _oxime_pattern = Chem.MolFromSmarts("C=N[OX2H1]")
 _guanidine_pattern = Chem.MolFromSmarts("[$(C(N)(N)=N)]")
+_cyclic_imide_pattern = Chem.MolFromSmarts("[C;R](=O)[N;R][C;R](=O)")
 
 _DUPLICATE_RULE_MAP = {
     "catechol_A(92)": "catechol",
@@ -57,12 +58,26 @@ def _refine_thiol1(mol, atom_indices):
     return "thiol_1_general"
 
 
+def _refine_beta_keto_anhydride(mol, atom_indices):
+    """FilterCatalog의 beta-keto/anhydride는 산소로 연결된 진짜 무수물과
+    질소로 연결된 고리형 이미드(우레이드, 바르비투레이트류 등)를 모두
+    포함하는 넓은 카테고리이므로, 두 카르보닐 사이 연결원자를 확인해
+    세분화한다."""
+    if mol.HasSubstructMatch(_cyclic_imide_pattern):
+        matches = mol.GetSubstructMatches(_cyclic_imide_pattern)
+        for match in matches:
+            if set(match) & set(atom_indices):
+                return "cyclic_imide"
+    return "beta-keto/anhydride"
+
+
 def detect_toxicophores(smiles: str) -> list[dict]:
     """
     분자의 SMILES를 받아, FilterCatalog(PAINS+BRENK)에 매치되는
     문제 구조(toxicophore)들을 찾아서 규칙 이름과 해당 원자 인덱스를 반환.
     imine_1은 옥심/구아니딘/일반이민, thiol_1은 디티오카바메이트/
-    티오카르복실산염/일반형 하위형으로 세분화하여 반환한다.
+    티오카르복실산염/일반형, beta-keto/anhydride는 산소연결(진짜 무수물)/
+    질소연결(고리형 이미드) 하위형으로 세분화하여 반환한다.
     aniline은 FilterCatalog의 단순 [NH2] 탐지 대신, replacement_library의
     확장된 패턴(para-치환 벤젠 포함)을 그대로 사용해 재정의한다.
     PAINS/BRENK가 동일하거나 부분적으로 겹치는 구조를 서로 다른 이름/원자
@@ -86,6 +101,8 @@ def detect_toxicophores(smiles: str) -> list[dict]:
                 rule_name = _refine_imine1(mol, atom_indices)
             elif rule_name == "thiol_1":
                 rule_name = _refine_thiol1(mol, atom_indices)
+            elif rule_name == "beta-keto/anhydride":
+                rule_name = _refine_beta_keto_anhydride(mol, atom_indices)
             elif rule_name == "aniline":
                 continue
             elif rule_name in _DUPLICATE_RULE_MAP:

@@ -207,18 +207,34 @@ REPLACEMENT_LIBRARY = {
     },
     "het-C-het_not_in_ring": {
         "edit_method": "atom_edit",
-        "problem_smarts": "[CX4](O)(O)",
+        "problem_smarts": "[CX4]([OX2,SX2])([OX2,SX2])",
         "candidates": [
             {"edit_type": "remove_substituent",
              "center_idx_in_pattern": 0,
              "remove_idx_in_pattern": 1,
              "upgrade_bond_to_idx_in_pattern": 2,
-             "name": "ketone/ester (one alkoxy removed, C=O formed)",
-             "rationale": "아세탈/케탈 또는 오르토에스터(탄소 하나에 알콕시기 2개 "
-                          "이상)는 가수분해에 민감하여 반응성 카르보닐(케톤/알데히드)로 "
-                          "쉽게 분해되며 대사 불안정성을 일으킴. 알콕시기 하나를 제거하고 "
-                          "남은 산소를 카르보닐로 승격시켜, 가수분해로 어차피 도달할 "
-                          "안정한 최종 형태로 미리 전환함 (검증 필요)"},
+             "name": "ketone/ester (one heteroatom substituent removed, C=O formed)",
+             "rationale": "아세탈/케탈/오르토에스터(산소 2개) 또는 디티오아세탈(황 2개, "
+                          "실제 철수약물 Probucol에서 확인) 등 탄소 하나에 헤테로원자 2개가 "
+                          "붙은 구조는 가수분해/해리에 민감하여 반응성 카르보닐로 쉽게 "
+                          "전환되며 대사 불안정성을 일으킴. 헤테로원자 하나를 제거하고 "
+                          "남은 것을 카르보닐로 승격시켜, 가수분해로 어차피 도달할 안정한 "
+                          "최종 형태로 미리 전환함 (검증 필요)"},
+        ],
+    },
+    "cyclic_imide": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[C;R](=O)[N;R][C;R](=O)",
+        "candidates": [
+            {"edit_type": "cleave_bond", "cleave_pair_in_pattern": (2, 3),
+             "name": "ring-opened amide (imide bond cleaved)",
+             "rationale": "고리형 이미드(우레이드) 구조는 바르비투레이트류(페노바르비탈, "
+                      "펜토바르비탈 등 다수 철수약물에서 실제 확인됨)와 탈리도마이드의 "
+                      "잔여 글루타르이미드 고리에서 나타나며, 가수분해에 민감한 반응성 "
+                      "구조임. 고리 내 아마이드 결합 하나를 끊어 개환함으로써 실제 "
+                      "가수분해의 첫 단계를 근사함. 고리 구성원(R)만 매치하도록 제한하여, "
+                      "개환 후 남은 사슬에 재적용되어 조각화되는 것을 방지함 "
+                      "(ChEMBL 조회로 검증된 실제 철수약물 다수에서 발견, 검증 필요)"},
         ],
     },
     "hydroquinone": {
