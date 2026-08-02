@@ -1,0 +1,77 @@
+{
+  "aniline": {
+    "n": 10,
+    "avg_delta_qed": 0.07740003755890199,
+    "avg_delta_logp": 0.37620000000000026
+  },
+  "het-C-het_not_in_ring": {
+    "n": 2,
+    "avg_delta_qed": -0.100651251950449,
+    "avg_delta_logp": -1.4583000000000002
+  },
+  "nitro_group": {
+    "n": 14,
+    "avg_delta_qed": 0.04286322800238256,
+    "avg_delta_logp": -0.32600000000000035
+  },
+  "aldehyde": {
+    "n": 8,
+    "avg_delta_qed": 0.11059395702657651,
+    "avg_delta_logp": -0.7135999999999999
+  },
+  "isocyanate": {
+    "n": 3,
+    "avg_delta_qed": 0.030956851410173607,
+    "avg_delta_logp": -0.3824333333333339
+  },
+  "stilbene": {
+    "n": 3,
+    "avg_delta_qed": 0.06180916073691126,
+    "avg_delta_logp": -0.3852000000000008
+  },
+  "alkyl_halide": {
+    "n": 15,
+    "avg_delta_qed": 0.018036458560002838,
+    "avg_delta_logp": -1.2022933333333337
+  },
+  "catechol": {
+    "n": 2,
+    "avg_delta_qed": 0.1810438307427789,
+    "avg_delta_logp": 0.30299999999999994
+  },
+  "triple_bond": {
+    "n": 4,
+    "avg_delta_qed": 0.036634066704247195,
+    "avg_delta_logp": 0.6899000000000005
+  },
+  "Michael_acceptor_1": {
+    "n": 13,
+    "avg_delta_qed": 0.09443177605534404,
+    "avg_delta_logp": -0.006976923076923145
+  },
+  "Thiocarbonyl_group": {
+    "n": 2,
+    "avg_delta_qed": 0.029601958360508163,
+    "avg_delta_logp": -0.16490000000000016
+  },
+  "acid_halide": {
+    "n": 2,
+    "avg_delta_qed": 0.04483594672721947,
+    "avg_delta_logp": -1.2801000000000005
+  },
+  "azo_A(324)": {
+    "n": 7,
+    "avg_delta_qed": -0.0780879100941586,
+    "avg_delta_logp": -1.0581714285714297
+  },
+  "diketo_group": {
+    "n": 3,
+    "avg_delta_qed": 0.0635167124607778,
+    "avg_delta_logp": -0.18856666666666663
+  },
+  "imine_1_general": {
+    "n": 4,
+    "avg_delta_qed": 0.0532110482605551,
+    "avg_delta_logp": -0.6237250000000014
+  }
+}
