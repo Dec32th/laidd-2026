@@ -1,4 +1,3 @@
-
 REPLACEMENT_LIBRARY = {
     "nitro_group": {
         "problem_smarts": "[N+](=O)[O-]",
@@ -16,12 +15,21 @@ REPLACEMENT_LIBRARY = {
         ],
     },
     "aldehyde": {
+        "edit_method": "atom_edit",
         "problem_smarts": "[CX3H1](=O)",
+        "target_idx_pair_in_pattern": (0, 1),
         "candidates": [
-            {"smiles": "C(=O)N", "name": "amide",
-             "rationale": "알데히드의 친전자성(단백질 부가물 형성 우려)을 제거하면서 유사한 형태 유지"},
-            {"smiles": "C(O)", "name": "alcohol",
-             "rationale": "가장 단순한 환원형 대체, 반응성 크게 감소"},
+            {"edit_type": "add_substituent", "param": "N",
+             "target_idx_in_pattern": 0,
+             "name": "amide",
+             "rationale": "알데히드의 친전자성(단백질 부가물 형성 우려)을 제거하면서 "
+                      "유사한 형태 유지. atom_edit 방식으로 재설계(기존 fragment-cut "
+                      "은 회전 가능 결합으로 분리되지 않는 특수 맥락, 예: 폼아마이드형 "
+                      "알데히드에서 조각화 실패)."},
+            {"edit_type": "reduce_bond", "target_idx_pair_in_pattern": (0, 1),
+             "name": "alcohol",
+             "rationale": "가장 단순한 환원형 대체, 반응성 크게 감소. atom_edit 방식으로 "
+                      "재설계(기존 fragment-cut 한계 해결)."},
         ],
     },
     "Michael_acceptor_1": {
