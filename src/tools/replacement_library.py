@@ -544,6 +544,21 @@ REPLACEMENT_LIBRARY = {
                           "아마이드로 전환, 이 재배열 경로를 차단함 (검증 필요)"},
         ],
     },
+    "Aliphatic_long_chain": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[CH2][CH2][CH2][CH2]",
+        "candidates": [
+            {"edit_type": "insert_atom",
+             "insert_pair_in_pattern": (1, 2),
+             "param": 8,
+             "name": "ether-inserted chain (O in middle)",
+             "rationale": "탄소 4개 이상 연속된 지방족(비고리) 사슬은 과도한 지용성을 "
+                      "유발해 막 축적, 대사 불안정성, 부적절한 약물동태(반감기 과다 "
+                      "연장 등)를 일으킬 수 있음. 사슬 중간에 산소(에테르)를 삽입해 "
+                      "극성을 높이고 지용성을 낮추는 것은 실제 의약화학에서 널리 쓰이는 "
+                      "bioisostere 전략임 (검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:

@@ -207,6 +207,25 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(idx_c_break).SetNoImplicit(False)
         rwmol.GetAtomWithIdx(offset).SetNoImplicit(False)
 
+    elif edit_type == "insert_atom":
+    # 두 원자 사이의 결합을 끊고, 그 사이에 새 원자(예: 산소)를 삽입
+      pair = candidate["insert_pair_in_pattern"]
+      idx1 = match[pair[0]]
+      idx2 = match[pair[1]]
+
+      bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
+      if bond is None:
+          return None
+      rwmol.RemoveBond(idx1, idx2)
+
+      new_atom = Chem.Atom(candidate["param"])  # 원자번호, 예: 8=산소
+      new_idx = rwmol.AddAtom(new_atom)
+      rwmol.AddBond(idx1, new_idx, Chem.BondType.SINGLE)
+      rwmol.AddBond(new_idx, idx2, Chem.BondType.SINGLE)
+
+      rwmol.GetAtomWithIdx(idx1).SetNoImplicit(False)
+      rwmol.GetAtomWithIdx(idx2).SetNoImplicit(False)
+
     elif edit_type == "replace_ring":
         ring_key = candidate.get("ring_atom_indices_in_pattern", info.get("ring_atom_indices_in_pattern"))
         anchor_key = candidate.get("anchor_indices_in_pattern", info.get("anchor_indices_in_pattern"))
