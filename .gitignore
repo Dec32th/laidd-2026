@@ -229,3 +229,15 @@ data/*.tab
 *.mmpdb
 tox21_*.smi
 tox21_*_properties.csv
+
+*.pdb
+receptor_*
+
+*.pdb
+receptor_*
+
+*.pdb
+receptor_*
+*.pdbqt
+vina_bin
+docking_result_*.json
