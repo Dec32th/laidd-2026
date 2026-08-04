@@ -553,10 +553,22 @@ REPLACEMENT_LIBRARY = {
              "param": 8,
              "name": "ether-inserted chain (O in middle)",
              "rationale": "탄소 4개 이상 연속된 지방족(비고리) 사슬은 과도한 지용성을 "
-                      "유발해 막 축적, 대사 불안정성, 부적절한 약물동태(반감기 과다 "
-                      "연장 등)를 일으킬 수 있음. 사슬 중간에 산소(에테르)를 삽입해 "
-                      "극성을 높이고 지용성을 낮추는 것은 실제 의약화학에서 널리 쓰이는 "
-                      "bioisostere 전략임 (검증 필요)"},
+                          "유발해 막 축적, 대사 불안정성, 부적절한 약물동태(반감기 과다 "
+                          "연장 등)를 일으킬 수 있음. 사슬 중간에 산소(에테르)를 삽입해 "
+                          "극성을 높이고 지용성을 낮추는 것은 실제 의약화학에서 널리 쓰이는 "
+                          "bioisostere 전략임 (검증 필요)"},
+        ],
+    },
+    "isolated_alkene": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[CX3H1,CX3H0;!$([CX3]=[CX3]c)]=[CX3;!$([CX3]=[CX3]c)]",
+        "target_idx_pair_in_pattern": (0, 1),
+        "candidates": [
+            {"edit_type": "reduce_bond", "name": "saturated (C-C single bond)",
+             "rationale": "고립된 지방족 알켄(방향족·카르보닐과 공액되지 않은 단순 C=C)은 "
+                          "산화적 대사(에폭시드 형성 등)를 거쳐 반응성 중간체를 생성할 "
+                          "가능성이 있는 구조 경고임. 이중결합을 단일결합으로 환원해 이 "
+                          "산화 경로를 차단함 (검증 필요)"},
         ],
     },
 }
