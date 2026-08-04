@@ -5,7 +5,7 @@
     "rule_steps": 7,
     "rule_final": "CCN(C)C",
     "llm_status": "success",
-    "llm_steps": 1,
+    "llm_steps": 2,
     "llm_final": "CCN(C)C"
   },
   {
@@ -94,9 +94,9 @@
     "rule_status": "success",
     "rule_steps": 2,
     "rule_final": "CC(=O)O.CC(=O)O[C@H]1CC[C@H]2[C@H]3Cc4cccc5c4[C@@]2(CCN3C)[C@H]1O5",
-    "llm_status": "success",
-    "llm_steps": 2,
-    "llm_final": "CC(=O)O.CC(=O)O[C@H]1CC[C@H]2[C@H]3Cc4cccc5c4[C@@]2(CCN3C)[C@H]1O5"
+    "llm_status": "stuck",
+    "llm_steps": 1,
+    "llm_final": "CC(=O)O.CC(=O)O[C@H]1C=C[C@H]2[C@H]3Cc4cccc5c4[C@@]2(CCN3C)[C@H]1O5"
   },
   {
     "original": "Cc1ccc(N)cc1[N+](=O)[O-]",
@@ -105,7 +105,7 @@
     "rule_final": "CC(=O)Nc1ccc(C)c(N)c1",
     "llm_status": "success",
     "llm_steps": 2,
-    "llm_final": "CC(=O)Nc1ccc(C)c(C#N)c1"
+    "llm_final": "CC(=O)Nc1ccc(C)c(S(N)(=O)=O)c1"
   },
   {
     "original": "CCOc1ccc(N=Nc2ccc(C=Cc3ccc(N=Nc4ccc(OCC)cc4)cc3S(=O)(=O)[O-])c(S(=O)(=O)[O-])c2)cc1",

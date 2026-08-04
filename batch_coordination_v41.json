@@ -27,7 +27,7 @@
   {
     "smiles": "CC1=CC(C)C(C=O)C(C)C1",
     "rule": "aldehyde",
-    "final_decision": "사람 검토 필요 (약리학 우려)"
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
   },
   {
     "smiles": "C=CCSCC1Nc2cc(Cl)c(S(N)(=O)=O)cc2S(=O)(=O)N1",
@@ -57,7 +57,7 @@
   {
     "smiles": "CC[N+](CC)(CC)CCOc1ccc(/C=C/c2ccccc2)cc1",
     "rule": "quaternary_nitrogen_2",
-    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
+    "final_decision": "사람 검토 필요 (약리학 우려)"
   },
   {
     "smiles": "CC(=O)OC/C=C(\\C)CCC=C(C)C",
@@ -67,7 +67,7 @@
   {
     "smiles": "CC(O)CCl",
     "rule": "alkyl_halide",
-    "final_decision": "사람 검토 필요 (약리학 우려)"
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
   },
   {
     "smiles": "CCCCCC[n+]1ccccc1.F[B-](F)(F)F",
@@ -122,7 +122,7 @@
   {
     "smiles": "C[N+]1(CCC(C(N)=O)(c2ccccc2)c2ccccc2)CCCCC1",
     "rule": "quaternary_nitrogen_2",
-    "final_decision": "사람 검토 필요 (약리학 우려)"
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
   },
   {
     "smiles": "CCOCCOC(=O)C=Cc1ccc(OC)cc1",
@@ -237,7 +237,7 @@
   {
     "smiles": "CCCCCCCCCCCCCCCCSCC(COC)COP(=O)([O-])OCC[N+](C)(C)C",
     "rule": "Aliphatic_long_chain",
-    "final_decision": "사람 검토 필요 (약리학 우려)"
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
   },
   {
     "smiles": "CO[C@H]1C[C@H](O[C@H]2[C@H](C)O[C@@H](O[C@@H]3C(C)=CC[C@@H]4C[C@@H](C[C@]5(C=C[C@H](C)[C@@H](C6CCCCC6)O5)O4)OC(=O)[C@@H]4C=C(C)[C@@H](O)[C@H]5OCC(=CC=C[C@@H]3C)[C@@]45O)C[C@@H]2OC)O[C@@H](C)[C@@H]1O",
@@ -247,7 +247,7 @@
   {
     "smiles": "CN(C)c1ccc(C(=C2C=CC(=[N+](C)C)C=C2)c2ccc(N(C)C)cc2)cc1",
     "rule": "imine_1_general",
-    "final_decision": "사람 검토 필요 (약리학 우려)"
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
   },
   {
     "smiles": "CC(C)CCCCCCOC(=O)C1CCCCC1C(=O)OCCCCCCC(C)C",
@@ -257,7 +257,7 @@
   {
     "smiles": "Cc1cc(C)c(N)c(Cl)c1",
     "rule": "aniline",
-    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
+    "final_decision": "사람 검토 필요 (약리학 우려)"
   },
   {
     "smiles": "CCn1cc[n+](C)c1",
@@ -277,7 +277,7 @@
   {
     "smiles": "Nc1cc(Cl)c(NC2=NCCN2)c(Cl)c1",
     "rule": "aniline",
-    "final_decision": "사람 검토 필요 (약리학 우려)"
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
   },
   {
     "smiles": "O=[N+]([O-])c1cccc(Cl)c1Cl",
@@ -412,7 +412,7 @@
   {
     "smiles": "Cc1cc(-c2cc(C)c(N)c(C)c2)cc(C)c1N",
     "rule": "aniline",
-    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
+    "final_decision": "사람 검토 필요 (약리학 우려)"
   },
   {
     "smiles": "COCCCCCCCCOCCC[Si](C)(O[Si](C)(C)C)O[Si](C)(C)C",
@@ -447,7 +447,7 @@
   {
     "smiles": "Cc1cc(N)c2ccccc2[n+]1CCCCCCCCCC[n+]1c(C)cc(N)c2ccccc21",
     "rule": "Aliphatic_long_chain",
-    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
+    "final_decision": "사람 검토 필요 (약리학 우려)"
   },
   {
     "smiles": "O=[N+]([O-])c1cc(C(F)(F)F)c(Cl)c([N+](=O)[O-])c1Cl",
@@ -477,7 +477,7 @@
   {
     "smiles": "NC(=O)N1c2ccccc2C=Cc2ccccc21",
     "rule": "stilbene",
-    "final_decision": "사람 검토 필요 (약리학 우려)"
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)"
   },
   {
     "smiles": "CN(C)CCCCl",

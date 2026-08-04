@@ -3,8 +3,16 @@ from rdkit.Chem import rdMMPA
 from src.tools.replacement_library import get_replacement_candidates
 
 
+_FAILURE_MEMORY = {}
+
+
+def clear_failure_memory():
+    """규칙 라이브러리가 업데이트된 뒤(reload 후) 호출해 캐시를 초기화."""
+    global _FAILURE_MEMORY
+    _FAILURE_MEMORY = {}
+
+
 def _check_and_match(part_smiles, problem_pattern, pattern_size):
-    """조각이 problem_pattern과 정확한 크기로 매치되는지 확인."""
     part_mol = Chem.MolFromSmiles(part_smiles.replace('[*:1]', 'C').replace('[*:2]', 'C'))
     if part_mol is None or not part_mol.HasSubstructMatch(problem_pattern):
         return False
@@ -46,11 +54,9 @@ def find_core_and_target(smiles: str, rule_name: str):
             if not _check_and_match(part, problem_pattern, pattern_size):
                 continue
             other_chain_part = chain_parts[1 - i]
-
             target_ap = '[*:1]' if '[*:1]' in part else ('[*:2]' if '[*:2]' in part else None)
             if target_ap is None:
                 continue
-
             core_mol = Chem.MolFromSmiles(core)
             other_mol = Chem.MolFromSmiles(other_chain_part)
             if core_mol is None or other_mol is None:
@@ -59,13 +65,11 @@ def find_core_and_target(smiles: str, rule_name: str):
                 merged = Chem.molzip(core_mol, other_mol)
             except Exception:
                 continue
-
             merged_smiles = Chem.MolToSmiles(merged)
             if merged_smiles.count('[*:') != 1:
                 continue
             if '[*:1]' not in merged_smiles:
                 merged_smiles = merged_smiles.replace('[*:2]', '[*:1]')
-
             return {"core": merged_smiles, "target_removed": part}
 
     return None
@@ -119,10 +123,13 @@ def canonicalize(smiles: str):
 
 
 def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
-                        llm_client=None, llm_model=None, llm_client_type="gemini"):
-    """진단->치환->재평가를 반복. known 규칙 중 우선순위가 가장 높은 것이
-    propose_fix에서 실패하면, stuck 처리 전에 같은 분자의 다른 known
-    규칙들을 순서대로 시도한다."""
+                        llm_client=None, llm_model=None, llm_client_type="gemini",
+                        use_failure_memory: bool = True):
+    """진단->치환->재평가를 반복.
+    use_failure_memory=True(기본): 세션 전체에 걸쳐 "이 분자 상태 + 이
+    규칙" 조합이 이미 실패한 적 있으면 재시도하지 않고 즉시 건너뜀
+    (propose_fix 재호출 없이 스킵). 규칙 라이브러리를 수정한 뒤에는
+    clear_failure_memory()를 호출해 캐시를 초기화해야 함."""
     from src.tools.toxicophore_detector import detect_toxicophores
     from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
 
@@ -179,6 +186,11 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         failed_attempts = []
 
         for candidate_rule in ordered_rules:
+            memory_key = (current, candidate_rule)
+            if use_failure_memory and memory_key in _FAILURE_MEMORY:
+                failed_attempts.append(f"{candidate_rule}(memory-skip)")
+                continue
+
             if llm_client is not None:
                 candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, candidate_rule, client_type=llm_client_type)
                 chosen_candidate_idx = candidate_decision['candidate_idx']
@@ -208,11 +220,14 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                 break
             else:
                 failed_attempts.append(candidate_rule)
+                if use_failure_memory:
+                    _FAILURE_MEMORY[memory_key] = True
 
         if fixed is None:
             reason_detail = (f"이 단계에서 known 규칙 {failed_attempts} 전부를 순서대로 시도했으나 "
-                              f"모두 실행에 실패했습니다. 흔한 원인: 유기금속/무기염 등 특수 화학종, "
-                              f"고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다.")
+                              f"모두 실행에 실패했습니다(memory-skip 표시는 이전에 실패했던 것으로 "
+                              f"확인되어 재시도 없이 건너뛴 항목). 흔한 원인: 유기금속/무기염 등 특수 "
+                              f"화학종, 고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다.")
             return {"status": "stuck", "reason": f"시도한 규칙 {failed_attempts} 모두 치환 실패",
                     "reason_detail": reason_detail,
                     "final_smiles": current, "history": history,
