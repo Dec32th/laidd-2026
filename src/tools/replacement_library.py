@@ -571,6 +571,38 @@ REPLACEMENT_LIBRARY = {
                           "산화 경로를 차단함 (검증 필요)"},
         ],
     },
+    "quaternary_nitrogen_1": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[#6][n+]1ccccc1",
+        "center_idx_in_pattern": 1,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 0,
+             "center_idx_in_pattern": 1,
+             "allow_counterion": True,
+             "allow_aromatic_zero_h": True,
+             "name": "pyridine (N-alkyl removed)",
+             "rationale": "N-알킬피리디늄(방향족 4차 질소)은 영구적 양전하를 띠어 세포막 "
+                          "투과성이 떨어지고, 파라쿼트 등 일부 사례에서 미토콘드리아 "
+                          "독성/신경독성과 연관됨. N-알킬 사슬을 제거해 중성 피리딘으로 "
+                          "복원함 (검증 필요)"},
+        ],
+    },
+    "quaternary_nitrogen_2": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[#6][CH2][N+]([#6])([#6])[#6]",
+        "center_idx_in_pattern": 2,
+        "candidates": [
+            {"edit_type": "remove_atom",
+             "remove_idx_in_pattern": 1,
+             "center_idx_in_pattern": 2,
+             "name": "tertiary amine (one alkyl removed)",
+             "rationale": "비방향족 4차 암모늄(영구적 양전하)은 신경근 차단제(예: "
+                          "석시닐콜린류)에서 보이는 것처럼 막 투과성 저하 및 특정 이온"
+                          "채널/수용체와의 비특이적 상호작용 우려가 있음. 알킬기 하나를 "
+                          "제거해 중성 3차 아민으로 복원함 (검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:

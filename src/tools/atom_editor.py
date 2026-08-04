@@ -1,4 +1,5 @@
 
+
 from rdkit import Chem
 
 
@@ -173,6 +174,7 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
 
         center_new = _adjust4(center_idx, to_remove)
         rwmol.GetAtomWithIdx(center_new).SetNoImplicit(False)
+        rwmol.GetAtomWithIdx(center_new).SetFormalCharge(0)
 
     elif edit_type == "cleave_bond":
         pair = candidate["cleave_pair_in_pattern"]
@@ -313,9 +315,14 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
     check_mol = Chem.MolFromSmiles(new_smiles)
     is_valid = check_mol is not None
     if is_valid:
-        if edit_type != "cleave_bond" and '.' in new_smiles:
+        allow_counterion = candidate.get("allow_counterion", False)
+        allow_aromatic_zero_h = candidate.get("allow_aromatic_zero_h", False)
+
+        if edit_type != "cleave_bond" and not allow_counterion and '.' in new_smiles:
             is_valid = False
         for atom in check_mol.GetAtoms():
+            if allow_aromatic_zero_h and atom.GetIsAromatic() and atom.GetSymbol() == 'N':
+                continue
             if (atom.GetNoImplicit() and atom.GetFormalCharge() == 0
                     and atom.GetSymbol() in ('C', 'N', 'O')
                     and atom.GetTotalNumHs() == 0 and atom.GetDegree() < 4):
