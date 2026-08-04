@@ -603,6 +603,18 @@ REPLACEMENT_LIBRARY = {
                           "제거해 중성 3차 아민으로 복원함 (검증 필요)"},
         ],
     },
+    "phenol_ester": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "c[OX2]C(=O)",
+        "candidates": [
+            {"edit_type": "cleave_bond", "cleave_pair_in_pattern": (0, 1),
+             "name": "phenol + carboxylic acid (ester cleaved)",
+             "rationale": "페놀 에스터(아릴-O-C(=O)-)는 일반 지방족 에스터보다 가수분해에 "
+                          "민감하고, 방출되는 페놀이 추가로 반응성 퀴논으로 산화될 수 있는 "
+                          "이중 우려가 있는 구조임. 에스터 결합을 끊어 페놀과 카르복실산으로 "
+                          "분리, 가수분해로 어차피 도달할 안정한 최종 형태로 전환 (검증 필요)"},
+        ],
+    },
 }
 
 def get_replacement_candidates(rule_name: str) -> dict | None:

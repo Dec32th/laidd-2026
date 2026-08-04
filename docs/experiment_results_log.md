@@ -250,3 +250,13 @@ EGFR(공유결합, 도킹 한계 발견)에 이어, "독성저감이 해독경�
 기존 규칙들의 세분화 로직 보완이 필요한 사안으로 판단, 시간 대비
 효율 낮아 보류. Aliphatic_long_chain(170건, +10.3%p) 대비 규모가
 작아 3순위(isolated_alkene, 65건)로 우선순위 이동.
+
+## 2026-08-03 — 커버리지 확장 세션 최종 요약
+
+빈도 분석 기반 체계적 확장. 완료: Aliphatic_long_chain(170), 
+isolated_alkene(58), quaternary_nitrogen_1/2(51), phenol_ester(9).
+보류: Oxygen-nitrogen_single_bond(기존규칙 파편 혼합), phosphor(화학종 
+혼재), halogenated_ring_1(치환근거 불명확), heavy_metal(이질적 원소, 
+치환불가). iodine은 alkyl_halide와 100% 중복으로 불필요 확인.
+
+최종: 커버리지 33.2% -> 48.9% (+15.7%p), 규칙 수 35 -> 40개.
