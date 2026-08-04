@@ -1,5 +1,3 @@
-
-
 from rdkit import Chem
 
 
@@ -210,23 +208,90 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(offset).SetNoImplicit(False)
 
     elif edit_type == "insert_atom":
-    # 두 원자 사이의 결합을 끊고, 그 사이에 새 원자(예: 산소)를 삽입
-      pair = candidate["insert_pair_in_pattern"]
-      idx1 = match[pair[0]]
-      idx2 = match[pair[1]]
+        # 두 원자 사이의 결합을 끊고, 그 사이에 새 원자(예: 산소)를 삽입
+        pair = candidate["insert_pair_in_pattern"]
+        idx1 = match[pair[0]]
+        idx2 = match[pair[1]]
 
-      bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
-      if bond is None:
-          return None
-      rwmol.RemoveBond(idx1, idx2)
+        bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
+        if bond is None:
+            return None
+        rwmol.RemoveBond(idx1, idx2)
 
-      new_atom = Chem.Atom(candidate["param"])  # 원자번호, 예: 8=산소
-      new_idx = rwmol.AddAtom(new_atom)
-      rwmol.AddBond(idx1, new_idx, Chem.BondType.SINGLE)
-      rwmol.AddBond(new_idx, idx2, Chem.BondType.SINGLE)
+        new_atom = Chem.Atom(candidate["param"])
+        new_idx = rwmol.AddAtom(new_atom)
+        rwmol.AddBond(idx1, new_idx, Chem.BondType.SINGLE)
+        rwmol.AddBond(new_idx, idx2, Chem.BondType.SINGLE)
 
-      rwmol.GetAtomWithIdx(idx1).SetNoImplicit(False)
-      rwmol.GetAtomWithIdx(idx2).SetNoImplicit(False)
+        rwmol.GetAtomWithIdx(idx1).SetNoImplicit(False)
+        rwmol.GetAtomWithIdx(idx2).SetNoImplicit(False)
+
+    elif edit_type == "insert_atom_multi_chain":
+        # 긴 지방족 사슬 전용: 매치 시작점에서 양쪽 방향을 모두 추적해
+        # 더 긴 쪽을 진짜 사슬로 채택한 뒤, 4탄소 간격마다 산소를 동시 삽입
+        start_idx = match[candidate["chain_start_idx_in_pattern"]]
+
+        def _trace_chain(mol, start, avoid):
+            chain = [start]
+            current = start
+            prev = avoid
+            while True:
+                atom_cur = mol.GetAtomWithIdx(current)
+                if atom_cur.GetSymbol() != 'C' or atom_cur.GetTotalNumHs() < 1:
+                    break
+                next_candidates = [n.GetIdx() for n in atom_cur.GetNeighbors()
+                                    if n.GetIdx() != prev and n.GetSymbol() == 'C'
+                                    and not n.GetIsAromatic()]
+                if not next_candidates:
+                    break
+                prev, current = current, next_candidates[0]
+                chain.append(current)
+                if len(chain) > 30:
+                    break
+            return chain
+
+        start_atom = mol.GetAtomWithIdx(start_idx)
+        neighbor_options = [n.GetIdx() for n in start_atom.GetNeighbors()
+                             if n.GetSymbol() == 'C' and not n.GetIsAromatic()]
+
+        best_chain = [start_idx]
+        for nb in neighbor_options:
+            candidate_chain = [start_idx] + _trace_chain(mol, nb, start_idx)
+            if len(candidate_chain) > len(best_chain):
+                best_chain = candidate_chain
+
+        chain_atoms = best_chain
+        if len(chain_atoms) < 4:
+            return None
+
+        # 최종 조각들이 전부 3탄소 이하가 되도록 필요한 만큼 균등 삽입
+        n = len(chain_atoms)
+        num_inserts = max(1, (n - 1) // 3)
+        step = n / (num_inserts + 1)
+        insert_positions = sorted(set(int(round(step * (i + 1))) for i in range(num_inserts)))
+        insert_positions = [p for p in insert_positions if 0 < p < n]
+
+        insert_after = [chain_atoms[p - 1] for p in insert_positions]
+        if not insert_after:
+            return None
+
+        added = 0
+        for a_idx in insert_after:
+            a_pos = chain_atoms.index(a_idx)
+            b_idx = chain_atoms[a_pos + 1]
+            bond = rwmol.GetBondBetweenAtoms(a_idx, b_idx)
+            if bond is None:
+                continue
+            rwmol.RemoveBond(a_idx, b_idx)
+            new_o = rwmol.AddAtom(Chem.Atom(8))
+            rwmol.AddBond(a_idx, new_o, Chem.BondType.SINGLE)
+            rwmol.AddBond(new_o, b_idx, Chem.BondType.SINGLE)
+            rwmol.GetAtomWithIdx(a_idx).SetNoImplicit(False)
+            rwmol.GetAtomWithIdx(b_idx).SetNoImplicit(False)
+            added += 1
+
+        if added == 0:
+            return None
 
     elif edit_type == "replace_ring":
         ring_key = candidate.get("ring_atom_indices_in_pattern", info.get("ring_atom_indices_in_pattern"))
@@ -235,9 +300,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         anchor_idx1 = match[anchor_key[0]]
         anchor_idx2 = match[anchor_key[1]]
 
-        # 안전장치: 고리 원자가 anchor 2개 외에 다른 치환기(메틸기 등)를
-        # 갖고 있으면, 그 치환기가 고아가 되어 분자가 조각나므로 치환을
-        # 거부한다 (다중 BCP 치환 조각화 버그 재발 방지)
         ring_set = set(ring_indices)
         for ridx in ring_indices:
             ratom = mol.GetAtomWithIdx(ridx)

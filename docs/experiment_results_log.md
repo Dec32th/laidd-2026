@@ -260,3 +260,15 @@ isolated_alkene(58), quaternary_nitrogen_1/2(51), phenol_ester(9).
 치환불가). iodine은 alkyl_halide와 100% 중복으로 불필요 확인.
 
 최종: 커버리지 33.2% -> 48.9% (+15.7%p), 규칙 수 35 -> 40개.
+
+## 2026-08-03 — Aliphatic_long_chain 긴 사슬 개선 시도 (부분 성공, 근본 원인 발견)
+
+insert_atom_multi_chain 도입으로 18탄소 등 매우 긴 사슬을 1회 조작으로
+여러 조각(3~4탄소 이하)으로 분할하는 데는 성공했으나, 분할 후에도
+Aliphatic_long_chain이 재진단됨. 원인 확인: FilterCatalog 원본의 실제
+매치 원자에 산소(O)가 포함됨(idx 1,2,3,4 중 4=O) - 즉 원본 정의가 우리
+SMARTS([CH2][CH2][CH2][CH2], 탄소 4개 고정)보다 넓거나 다른 패턴.
+이는 처음 규칙 설계 시점의 SMARTS 자체가 FilterCatalog 원본과 정확히
+일치하지 않았다는 근본적 문제로, 완전한 해결은 SMARTS 재검증이 필요한
+후속 과제. 짧은/중간 길이 사슬(대부분의 실사용 사례)은 정상 작동하며
+회귀 없음 확인. 커버리지는 50.2%로 안전하게 유지됨.

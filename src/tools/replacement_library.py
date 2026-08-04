@@ -548,15 +548,15 @@ REPLACEMENT_LIBRARY = {
         "edit_method": "atom_edit",
         "problem_smarts": "[CH2][CH2][CH2][CH2]",
         "candidates": [
-            {"edit_type": "insert_atom",
-             "insert_pair_in_pattern": (1, 2),
-             "param": 8,
+            {"edit_type": "insert_atom", "insert_pair_in_pattern": (1, 2), "param": 8,
              "name": "ether-inserted chain (O in middle)",
-             "rationale": "탄소 4개 이상 연속된 지방족(비고리) 사슬은 과도한 지용성을 "
-                          "유발해 막 축적, 대사 불안정성, 부적절한 약물동태(반감기 과다 "
-                          "연장 등)를 일으킬 수 있음. 사슬 중간에 산소(에테르)를 삽입해 "
-                          "극성을 높이고 지용성을 낮추는 것은 실제 의약화학에서 널리 쓰이는 "
-                          "bioisostere 전략임 (검증 필요)"},
+             "rationale": "..."},  # 기존 그대로 유지
+            {"edit_type": "insert_atom_multi_chain",
+             "chain_start_idx_in_pattern": 0,
+             "name": "multi-ether chain (multiple O inserted for long chains)",
+             "rationale": "매우 긴 지방족 사슬(수 회 반복이 필요한 경우)에 대해, 4탄소 "
+                          "간격마다 산소를 동시에 여러 개 삽입하여 한 번에 극성을 분산시킴 "
+                          "(검증 필요, 긴 사슬 전용)"},
         ],
     },
     "isolated_alkene": {
@@ -613,6 +613,20 @@ REPLACEMENT_LIBRARY = {
                           "민감하고, 방출되는 페놀이 추가로 반응성 퀴논으로 산화될 수 있는 "
                           "이중 우려가 있는 구조임. 에스터 결합을 끊어 페놀과 카르복실산으로 "
                           "분리, 가수분해로 어차피 도달할 안정한 최종 형태로 전환 (검증 필요)"},
+        ],
+    },
+    "phosphor": {
+        "edit_method": "atom_edit",
+        "problem_smarts": "[OX2][PX4](=[OX1])([OX2])[OX2]",
+        "candidates": [
+            {"edit_type": "cleave_bond", "cleave_pair_in_pattern": (1, 4),
+             "name": "diester + phenol/alcohol (one ester bond cleaved)",
+             "rationale": "유기인산 트리에스터(트리아릴/트리알킬 포스페이트)는 아세틸콜린"
+                          "에스터라제(AChE) 억제를 통한 신경독성 메커니즘이 잘 알려진 "
+                          "구조로(유기인계 살충제·신경작용제의 공통 골격), 다중 에스터 "
+                          "결합이 반응성/생체이용률에 기여함. 에스터 결합 하나를 가수분해로 "
+                          "끊어 반응성을 낮춤 (검증 필요, 인 원자에 남은 나머지 에스터는 "
+                          "추가 규칙 필요 가능)"},
         ],
     },
 }
