@@ -333,3 +333,16 @@ insert_atom_multi_chain에는 과산화물 방지 로직을 추가했으나 inse
 ([CH2][CH2][CH2][CH2])로 원복. 커버리지 50.2% 유지, 안전성 확인 완료.
 이 확장은 여전히 유효한 개선 방향이나, insert_atom도 과산화물 방지
 로직을 갖춘 뒤 재시도해야 하는 후속 과제로 명시.
+
+## 2026-08-03 — 배치검증 실패 규칙 원인 추가 진단 (문서화만, 코드 수정 없음)
+
+beta-keto/anhydride: FilterCatalog 원본이 "beta-keto"(베타케토
+에스터/디케톤, 예: CCOC(=O)CC(=O)c1ccccc1)와 "anhydride"(무수물,
+C(=O)OC(=O)) 두 화학종을 하나의 이름으로 함께 진단함을 확인. 현재
+구현은 anhydride만 처리하며, beta-keto 서브타입은 별도 SMARTS/치환
+로직 설계가 필요한 미해결 후속 과제. 오늘 발생한 과산화물 생성
+사고(Aliphatic_long_chain 확장 시도)를 교훈삼아, 시간이 촉박한
+현재는 신규 로직 추가를 보류하고 정직한 한계로 기록함.
+
+Sulfonic_acid_2 실패건: 정확한 원인 분자를 재확인하지 못해 결론
+보류(원본 SMILES 일부가 로그에서 잘려 정확한 재현이 어려웠음).
