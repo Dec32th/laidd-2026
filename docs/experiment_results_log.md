@@ -307,3 +307,17 @@ Michael_acceptor_1, hydroquinone, quinone_A(370))에서만 반영, 없으면
 trade-off가 첨예한 어려운 사례들이었기 때문으로 해석. 종합 스코어가
 이 어려움을 정확히 반영하고 있음을 시사. 원본 데이터:
 outputs/multi_objective_scores_v41.json
+
+## 2026-08-03 — 3-에이전트 배치 검증 최종 확정 (v2 채택, 선례 반영)
+
+coordinate_agents v2(1회 치환 평가) vs v3(iterative_fix_loop 완전해결
+후 평가) 비교 결과, v3의 실패 42건 중 26건(62%)이 이미 알려진
+Aliphatic_long_chain SMARTS 한계(어제 문서화)에서 기인함을 확인.
+v2를 최종 채택.
+
+최종(v2, 41개 규칙+선례 11건 반영): 실패26/재검토39/사람검토34/승인1
+(hydroquinone, NQO1 도킹선례로 human_review_needed False 전환 - 
+선례 자가개선 메커니즘이 배치검증에서도 실증됨).
+
+이전(35개 규칙, 선례 5건): 실패14/재검토30/사람검토56/승인0과 비교시
+자동승인이 0->1건으로 전환된 것이 이번 세션 핵심 성과.
