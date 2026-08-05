@@ -208,7 +208,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(offset).SetNoImplicit(False)
 
     elif edit_type == "insert_atom":
-        # 두 원자 사이의 결합을 끊고, 그 사이에 새 원자(예: 산소)를 삽입
         pair = candidate["insert_pair_in_pattern"]
         idx1 = match[pair[0]]
         idx2 = match[pair[1]]
@@ -227,9 +226,23 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(idx2).SetNoImplicit(False)
 
     elif edit_type == "insert_atom_multi_chain":
-        # 긴 지방족 사슬 전용: 매치 시작점에서 양쪽 방향을 모두 추적해
-        # 더 긴 쪽을 진짜 사슬로 채택한 뒤, 4탄소 간격마다 산소를 동시 삽입
+        # 긴 지방족 사슬 전용(탄소 또는 비카르보닐 에테르 산소로 구성된
+        # 사슬 모두 인식): 매치 시작점에서 양쪽 방향을 모두 추적해 더 긴
+        # 쪽을 진짜 사슬로 채택한 뒤, 필요한 만큼 산소를 균등 삽입
         start_idx = match[candidate["chain_start_idx_in_pattern"]]
+
+        def _is_chain_member(atom):
+            if atom.GetSymbol() == 'C' and not atom.GetIsAromatic():
+                return True
+            if atom.GetSymbol() == 'O' and atom.GetDegree() == 2 and not atom.GetIsAromatic():
+                for nb in atom.GetNeighbors():
+                    for bond in nb.GetBonds():
+                        if bond.GetBondTypeAsDouble() == 2.0 and nb.GetSymbol() == 'C':
+                            other = bond.GetOtherAtom(nb)
+                            if other.GetSymbol() == 'O':
+                                return False
+                return True
+            return False
 
         def _trace_chain(mol, start, avoid):
             chain = [start]
@@ -237,11 +250,10 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             prev = avoid
             while True:
                 atom_cur = mol.GetAtomWithIdx(current)
-                if atom_cur.GetSymbol() != 'C' or atom_cur.GetTotalNumHs() < 1:
+                if not _is_chain_member(atom_cur):
                     break
                 next_candidates = [n.GetIdx() for n in atom_cur.GetNeighbors()
-                                    if n.GetIdx() != prev and n.GetSymbol() == 'C'
-                                    and not n.GetIsAromatic()]
+                                    if n.GetIdx() != prev and _is_chain_member(n)]
                 if not next_candidates:
                     break
                 prev, current = current, next_candidates[0]
@@ -251,8 +263,7 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
             return chain
 
         start_atom = mol.GetAtomWithIdx(start_idx)
-        neighbor_options = [n.GetIdx() for n in start_atom.GetNeighbors()
-                             if n.GetSymbol() == 'C' and not n.GetIsAromatic()]
+        neighbor_options = [n.GetIdx() for n in start_atom.GetNeighbors() if _is_chain_member(n)]
 
         best_chain = [start_idx]
         for nb in neighbor_options:
@@ -264,7 +275,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         if len(chain_atoms) < 4:
             return None
 
-        # 최종 조각들이 전부 3탄소 이하가 되도록 필요한 만큼 균등 삽입
         n = len(chain_atoms)
         num_inserts = max(1, (n - 1) // 3)
         step = n / (num_inserts + 1)
@@ -279,6 +289,9 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         for a_idx in insert_after:
             a_pos = chain_atoms.index(a_idx)
             b_idx = chain_atoms[a_pos + 1]
+            # 삽입 지점 양쪽이 이미 산소면(과산화물 방지) 건너뜀
+            if mol.GetAtomWithIdx(a_idx).GetSymbol() == 'O' or mol.GetAtomWithIdx(b_idx).GetSymbol() == 'O':
+                continue
             bond = rwmol.GetBondBetweenAtoms(a_idx, b_idx)
             if bond is None:
                 continue

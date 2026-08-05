@@ -1,3 +1,4 @@
+
 REPLACEMENT_LIBRARY = {
     "nitro_group": {
         "problem_smarts": "[N+](=O)[O-]",
@@ -550,7 +551,11 @@ REPLACEMENT_LIBRARY = {
         "candidates": [
             {"edit_type": "insert_atom", "insert_pair_in_pattern": (1, 2), "param": 8,
              "name": "ether-inserted chain (O in middle)",
-             "rationale": "..."},  # 기존 그대로 유지
+             "rationale": "탄소 4개 이상 연속된 지방족(비고리) 사슬은 과도한 지용성을 "
+                          "유발해 막 축적, 대사 불안정성, 부적절한 약물동태(반감기 과다 "
+                          "연장 등)를 일으킬 수 있음. 사슬 중간에 산소(에테르)를 삽입해 "
+                          "극성을 높이고 지용성을 낮추는 것은 실제 의약화학에서 널리 쓰이는 "
+                          "bioisostere 전략임 (검증 필요)"},
             {"edit_type": "insert_atom_multi_chain",
              "chain_start_idx_in_pattern": 0,
              "name": "multi-ether chain (multiple O inserted for long chains)",

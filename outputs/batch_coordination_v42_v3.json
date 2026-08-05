@@ -51,7 +51,7 @@
   {
     "smiles": "O=Cc1ccc(C(=O)O)cc1",
     "rule": "aldehyde",
-    "final_decision": "사람 검토 필요 (약리학 우려)",
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)",
     "precedent_used": false,
     "loop_status": "success"
   },
@@ -79,7 +79,7 @@
   {
     "smiles": "CC[N+](CC)(CC)CCOc1ccc(/C=C/c2ccccc2)cc1",
     "rule": "quaternary_nitrogen_2",
-    "final_decision": "사람 검토 필요 (약리학 우려)",
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)",
     "precedent_used": false,
     "loop_status": "success"
   },
@@ -170,7 +170,7 @@
   {
     "smiles": "C[N+]1(CCC(C(N)=O)(c2ccccc2)c2ccccc2)CCCCC1",
     "rule": "quaternary_nitrogen_2",
-    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)",
+    "final_decision": "사람 검토 필요 (약리학 우려)",
     "precedent_used": false,
     "loop_status": "success"
   },
@@ -359,7 +359,7 @@
   {
     "smiles": "Cc1cc(C)c(N)c(Cl)c1",
     "rule": "aniline",
-    "final_decision": "사람 검토 필요 (약리학 우려)",
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)",
     "precedent_used": false,
     "loop_status": "success"
   },
@@ -576,7 +576,7 @@
   {
     "smiles": "Cc1cc(-c2cc(C)c(N)c(C)c2)cc(C)c1N",
     "rule": "aniline",
-    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)",
+    "final_decision": "사람 검토 필요 (약리학 우려)",
     "precedent_used": false,
     "loop_status": "success"
   },
@@ -625,7 +625,7 @@
   {
     "smiles": "Cc1cc(N)c2ccccc2[n+]1CCCCCCCCCC[n+]1c(C)cc(N)c2ccccc21",
     "rule": "Aliphatic_long_chain",
-    "final_decision": "사람 검토 필요 (약리학 우려)",
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)",
     "precedent_used": false,
     "loop_status": "success"
   },
@@ -660,7 +660,7 @@
   {
     "smiles": "CN(C)C(=O)Oc1ccc[n+](C)c1",
     "rule": "quaternary_nitrogen_1",
-    "final_decision": "사람 검토 필요 (약리학 우려)",
+    "final_decision": "치환 재검토 권장 (원 독성 위험 낮음 + 활성 영향 우려 — 치환 필요성 자체를 재고)",
     "precedent_used": false,
     "loop_status": "success"
   },
