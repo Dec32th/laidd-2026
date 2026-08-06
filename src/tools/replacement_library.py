@@ -547,7 +547,7 @@ REPLACEMENT_LIBRARY = {
     },
     "Aliphatic_long_chain": {
         "edit_method": "atom_edit",
-        "problem_smarts": "[CH2][CH2][CH2][CH2]",
+        "problem_smarts": "[C,O;!$([OX2]C=O);!$([OX2]c)][C,O;!$([OX2]C=O);!$([OX2]c)][C,O;!$([OX2]C=O);!$([OX2]c)][C,O;!$([OX2]C=O);!$([OX2]c)]",
         "candidates": [
             {"edit_type": "insert_atom", "insert_pair_in_pattern": (1, 2), "param": 8,
              "name": "ether-inserted chain (O in middle)",

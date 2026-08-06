@@ -1,3 +1,4 @@
+
 from rdkit import Chem
 
 
@@ -211,6 +212,10 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         pair = candidate["insert_pair_in_pattern"]
         idx1 = match[pair[0]]
         idx2 = match[pair[1]]
+
+        # 과산화물(O-O) 생성 방지: 삽입 위치 양쪽이 이미 산소면 거부
+        if rwmol.GetAtomWithIdx(idx1).GetSymbol() == 'O' or rwmol.GetAtomWithIdx(idx2).GetSymbol() == 'O':
+            return None
 
         bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
         if bond is None:

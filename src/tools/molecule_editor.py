@@ -1,7 +1,17 @@
+
 from rdkit import Chem
 from rdkit.Chem import rdMMPA
 from src.tools.replacement_library import get_replacement_candidates
+import hashlib
 
+def _library_version_hash():
+    """현재 REPLACEMENT_LIBRARY 내용의 해시값. 라이브러리가 바뀌면
+    자동으로 다른 값이 나와서, 캐시 키에 포함시키면 라이브러리 변경 시
+    이전 캐시가 자동으로 무효화된다(수동 clear_failure_memory() 호출 불필요)."""
+    from src.tools.replacement_library import get_replacement_candidates
+    lib = get_replacement_candidates.__globals__['REPLACEMENT_LIBRARY']
+    content_str = str(sorted(lib.items()))
+    return hashlib.md5(content_str.encode()).hexdigest()[:8]
 
 _FAILURE_MEMORY = {}
 
@@ -186,7 +196,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         failed_attempts = []
 
         for candidate_rule in ordered_rules:
-            memory_key = (current, candidate_rule)
+            memory_key = (current, candidate_rule, _library_version_hash())
             if use_failure_memory and memory_key in _FAILURE_MEMORY:
                 failed_attempts.append(f"{candidate_rule}(memory-skip)")
                 continue
