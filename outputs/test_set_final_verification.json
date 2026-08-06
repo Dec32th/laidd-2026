@@ -1,0 +1,8 @@
+{
+  "n_rules": 42,
+  "n_test_molecules": 1174,
+  "coverage_pct": 49.9,
+  "success_rate": 50,
+  "partial_rate": 72,
+  "exception_count": 1
+}
