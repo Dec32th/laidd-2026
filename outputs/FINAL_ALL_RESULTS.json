@@ -1,0 +1,261 @@
+{
+  "meta": {
+    "project": "ToxGuard - JUMP AI 2026",
+    "team": "MorForge",
+    "generated_at": "2026-08-06",
+    "note": "제안서 작성을 위한 최종 확정 수치 통합본"
+  },
+  "library": {
+    "n_rules": 42,
+    "n_edit_types": 12,
+    "growth_history": [
+      {
+        "n_rules": 14,
+        "coverage_pct": 26.2
+      },
+      {
+        "n_rules": 17,
+        "coverage_pct": 27.5
+      },
+      {
+        "n_rules": 18,
+        "coverage_pct": 28.2
+      },
+      {
+        "n_rules": 21,
+        "coverage_pct": 29.0
+      },
+      {
+        "n_rules": 30,
+        "coverage_pct": 31.5
+      },
+      {
+        "n_rules": 34,
+        "coverage_pct": 33.2
+      },
+      {
+        "n_rules": 42,
+        "coverage_pct": 50.2
+      }
+    ]
+  },
+  "valid_set": {
+    "n_molecules": 1173,
+    "coverage_pct": 50.2,
+    "single_problem_success_rate_pct": 52,
+    "single_problem_partial_improvement_pct": 80,
+    "multi_problem_ratio_pct": 29.5,
+    "multi_problem_avg_count": 2.14,
+    "multi_problem_max_count": 3
+  },
+  "test_set": {
+    "n_molecules": 1174,
+    "coverage_pct": 49.9,
+    "single_problem_success_rate_pct": 50,
+    "single_problem_partial_improvement_pct": 72,
+    "note": "개발/검증 전 과정 미사용, 최종 1회만 사용. 1건의 신규 RuntimeError(원자인덱스 범위오류) 발견했으나 원칙에 따라 수정하지 않고 기록만 함.",
+    "exception_count": 1
+  },
+  "baseline_toxicity_models": {
+    "Tox21_AUROC_avg": 0.803,
+    "Ames_AUROC": 0.892,
+    "hERG_AUROC": 0.836,
+    "DILI_AUROC": 0.871,
+    "xgboost_comparison": {
+      "Tox21": {
+        "RF": 0.803,
+        "XGBoost": 0.79
+      },
+      "Ames": {
+        "RF": 0.892,
+        "XGBoost": 0.874
+      },
+      "hERG": {
+        "RF": 0.836,
+        "XGBoost": 0.78
+      },
+      "DILI": {
+        "RF": 0.921,
+        "XGBoost": 0.921
+      }
+    }
+  },
+  "4endpoint_validation": {
+    "Ames": {
+      "avg_change": -0.088,
+      "p_value": "<0.0001",
+      "significant": true
+    },
+    "Tox21": {
+      "avg_change": -0.009,
+      "p_value": 0.032,
+      "significant": true
+    },
+    "DILI": {
+      "avg_change": -0.035,
+      "p_value": 0.0018,
+      "significant": true
+    },
+    "hERG": {
+      "avg_change": 0.007,
+      "p_value": 0.363,
+      "significant": false
+    }
+  },
+  "ablation_order_dependency": {
+    "n_samples": 20,
+    "identical_final_state_pct": 90,
+    "rule_based_wins": 0,
+    "llm_wins_or_more_efficient": 2,
+    "note": "동일 최종상태 90%. 결과가 갈리는 경우, 라이브러리 확장 초기(버그 존재)에는 LLM 우세였으나, 버그 수정 후 재실행시 결과는 대부분 일치하고 효율성(단계수) 측면에서 LLM 우위 확인"
+  },
+  "three_agent_batch_validation_final": {
+    "n_samples": 100,
+    "n_rules_at_time": 42,
+    "substitution_failure": 19,
+    "reconsider_substitution": 35,
+    "human_review_needed": 45,
+    "auto_approved": 1,
+    "auto_approval_case": "hydroquinone (NQO1 docking precedent enabled first auto-approval)"
+  },
+  "precedent_library": {
+    "n_entries": 11,
+    "categories": [
+      "긍정_승인약물쌍",
+      "정량_활성데이터",
+      "부정_참고사례_검증필요",
+      "긍정_통계검증결과",
+      "위험=메커니즘_참고",
+      "도킹검증_결과",
+      "도킹검증_방법론한계"
+    ],
+    "self_improvement_verified": true,
+    "note": "선례 주입 전후 비교로 hydroquinone 사례에서 human_review_needed True->False 전환 확인"
+  },
+  "docking_verification": {
+    "n_cases": 5,
+    "n_targets": 3,
+    "results": [
+      {
+        "target": "COMT (PDB 1VID)",
+        "rule": "catechol",
+        "ligand": "dopamine",
+        "before_kcal": -5.72,
+        "after_kcal": -5.41,
+        "delta": 0.31,
+        "interpretation": "binding weakened, matches qualitative concern"
+      },
+      {
+        "target": "COMT (PDB 1VID)",
+        "rule": "catechol",
+        "ligand": "epinephrine",
+        "before_kcal": -6.21,
+        "after_kcal": -6.32,
+        "delta": -0.1,
+        "interpretation": "slight strengthening, opposite direction from dopamine"
+      },
+      {
+        "target": "EGFR (PDB 6JX4)",
+        "rule": "Michael_acceptor_1",
+        "ligand": "osimertinib",
+        "before_kcal": -7.13,
+        "after_kcal": -7.08,
+        "delta": 0.05,
+        "interpretation": "negligible change - standard docking cannot capture covalent binding (methodological limitation discovered)"
+      },
+      {
+        "target": "NQO1",
+        "rule": "hydroquinone/quinone_A(370)",
+        "ligand": "quinone",
+        "before_kcal": -3.29,
+        "after_kcal": -4.08,
+        "delta": -0.79,
+        "interpretation": "binding strengthened, aligns with detox pathway"
+      },
+      {
+        "target": "NQO1",
+        "rule": "hydroquinone/quinone_A(370)",
+        "ligand": "methylquinone",
+        "before_kcal": -3.8,
+        "after_kcal": -4.29,
+        "delta": -0.49,
+        "interpretation": "binding strengthened, confirms consistency"
+      }
+    ]
+  },
+  "multi_objective_scoring": {
+    "n_samples": 100,
+    "avg_composite_score": 0.746,
+    "avg_with_docking_precedent": 0.673,
+    "avg_without_docking_precedent": 0.751,
+    "low_score_count_below_0.4": 0,
+    "components": [
+      "toxicity_delta",
+      "docking_delta_if_available",
+      "SA_Score",
+      "QED",
+      "Lipinski_violations",
+      "PAINS_pass"
+    ],
+    "weights": {
+      "toxicity": 0.3,
+      "docking": 0.2,
+      "sa": 0.15,
+      "qed": 0.15,
+      "lipinski": 0.1,
+      "pains": 0.1
+    }
+  },
+  "safety_incidents_and_resolutions": [
+    {
+      "issue": "replace_ring fragmentation on multi-substituted rings",
+      "discovery": "order-dependency experiment",
+      "resolution": "guard added rejecting unhandled ring substituents"
+    },
+    {
+      "issue": "cleave_bond fragmentation-guard regression (disulphide)",
+      "resolution": "exempted cleave_bond from '.' fragmentation check"
+    },
+    {
+      "issue": "iterative_fix_loop giving up after first-priority rule failure",
+      "resolution": "retry logic added trying all known rules in priority order"
+    },
+    {
+      "issue": "Aliphatic_long_chain SMARTS expansion caused peroxide (O-O) formation",
+      "discovery": "safety review during coverage expansion",
+      "resolution": "reverted first, then re-attempted with peroxide-formation guard in insert_atom"
+    },
+    {
+      "issue": "failure memory cache not invalidating after library edits",
+      "resolution": "added _library_version_hash() to auto-invalidate cache on library changes"
+    }
+  ],
+  "chembl_withdrawn_drug_validation": {
+    "n_matched_drugs": 23,
+    "fully_resolved_examples": [
+      "Probucol (het-C-het_not_in_ring)",
+      "Thalidomide residual glutarimide ring (phthalimide + cyclic_imide)"
+    ],
+    "partially_resolved_examples": [
+      "Barbiturates (core ureide ring resolved, secondary formamide byproduct remains)"
+    ]
+  },
+  "coverage_expansion_this_session": {
+    "rules_added": [
+      "Aliphatic_long_chain (170 cases)",
+      "isolated_alkene (58 cases)",
+      "quaternary_nitrogen_1 (28 cases)",
+      "quaternary_nitrogen_2 (23 cases)",
+      "phenol_ester (9 cases)",
+      "phosphor subtype (9 cases)"
+    ],
+    "rules_deferred": [
+      "Oxygen-nitrogen_single_bond (mostly overlaps existing rules)",
+      "halogenated_ring_1 (no clear substitution rationale)",
+      "heavy_metal (heterogeneous elements, non-substitutable)"
+    ],
+    "redundancy_confirmed": [
+      "iodine (100% overlaps alkyl_halide, no new rule needed)"
+    ]
+  }
+}
