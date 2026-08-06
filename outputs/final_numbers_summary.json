@@ -1,0 +1,13 @@
+{
+  "n_rules": 42,
+  "coverage_pct": 50.2,
+  "success_rate": 52,
+  "partial_improvement_rate": 80,
+  "multi_problem_ratio": 29.5,
+  "multi_problem_avg": 2.14,
+  "multi_problem_max": 3,
+  "composite_avg": 0.746,
+  "composite_with_docking": 0.673,
+  "composite_without_docking": 0.751,
+  "composite_low_count": 0
+}
