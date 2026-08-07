@@ -1,13 +1,9 @@
-
 from rdkit import Chem
 from rdkit.Chem import rdMMPA
 from src.tools.replacement_library import get_replacement_candidates
 import hashlib
 
 def _library_version_hash():
-    """현재 REPLACEMENT_LIBRARY 내용의 해시값. 라이브러리가 바뀌면
-    자동으로 다른 값이 나와서, 캐시 키에 포함시키면 라이브러리 변경 시
-    이전 캐시가 자동으로 무효화된다(수동 clear_failure_memory() 호출 불필요)."""
     from src.tools.replacement_library import get_replacement_candidates
     lib = get_replacement_candidates.__globals__['REPLACEMENT_LIBRARY']
     content_str = str(sorted(lib.items()))
@@ -17,7 +13,6 @@ _FAILURE_MEMORY = {}
 
 
 def clear_failure_memory():
-    """규칙 라이브러리가 업데이트된 뒤(reload 후) 호출해 캐시를 초기화."""
     global _FAILURE_MEMORY
     _FAILURE_MEMORY = {}
 
@@ -132,14 +127,26 @@ def canonicalize(smiles: str):
     return Chem.MolToSmiles(mol) if mol else None
 
 
+def _candidate_order_for_rule(rule_name: str, preferred_idx: int):
+    info = get_replacement_candidates(rule_name)
+    if info is None:
+        return [preferred_idx]
+    n = len(info['candidates'])
+    order = [preferred_idx] if 0 <= preferred_idx < n else []
+    order += [i for i in range(n) if i != preferred_idx]
+    return order
+
+
 def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
                         llm_client=None, llm_model=None, llm_client_type="gemini",
                         use_failure_memory: bool = True):
     """진단->치환->재평가를 반복.
-    use_failure_memory=True(기본): 세션 전체에 걸쳐 "이 분자 상태 + 이
-    규칙" 조합이 이미 실패한 적 있으면 재시도하지 않고 즉시 건너뜀
-    (propose_fix 재호출 없이 스킵). 규칙 라이브러리를 수정한 뒤에는
-    clear_failure_memory()를 호출해 캐시를 초기화해야 함."""
+    핵심: candidate가 '화학적으로 유효(is_valid)'해도 대상 규칙이 실제로
+    해소됐는지 재진단(detect_toxicophores)까지 확인한다. 그렇지 않으면
+    항상 valid하지만 문제를 안 고치는 candidate(예: 단순 삽입형)가
+    무한 반복 채택되어 진짜 해법(예: 분기형)으로 넘어가지 못하는 문제가
+    있었음. 완전 해소가 안 되면 마지막으로 시도한(=대개 더 나은)
+    valid 결과를 fallback으로 채택해 다음 iteration에서 계속 개선."""
     from src.tools.toxicophore_detector import detect_toxicophores
     from src.tools.agent import ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use
 
@@ -196,17 +203,12 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         failed_attempts = []
 
         for candidate_rule in ordered_rules:
-            memory_key = (current, candidate_rule, _library_version_hash())
-            if use_failure_memory and memory_key in _FAILURE_MEMORY:
-                failed_attempts.append(f"{candidate_rule}(memory-skip)")
-                continue
-
             if llm_client is not None:
                 candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, candidate_rule, client_type=llm_client_type)
-                chosen_candidate_idx = candidate_decision['candidate_idx']
+                preferred_candidate_idx = candidate_decision['candidate_idx']
                 this_candidate_reason = candidate_decision.get('reason', '')
 
-                if chosen_candidate_idx == -1:
+                if preferred_candidate_idx == -1:
                     flagged_for_review.add(candidate_rule)
                     if candidate_rule not in skipped_rules:
                         skipped_rules.append(candidate_rule)
@@ -219,26 +221,56 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                     })
                     continue
             else:
-                chosen_candidate_idx = candidate_idx
-                this_candidate_reason = "규칙 기반(고정 인덱스)"
+                preferred_candidate_idx = candidate_idx
+                this_candidate_reason = "규칙 기반(고정 인덱스 우선, 실패/미해소 시 같은 규칙 내 다른 candidate로 재시도)"
 
-            attempt = propose_fix(current, candidate_rule, chosen_candidate_idx)
-            if attempt is not None and attempt.get('is_valid'):
-                fixed = attempt
+            rule_fixed = None
+            fallback_attempt = None
+            fallback_used_idx = None
+            fallback_reason = None
+
+            for try_idx in _candidate_order_for_rule(candidate_rule, preferred_candidate_idx):
+                memory_key = (current, candidate_rule, try_idx, _library_version_hash())
+                if use_failure_memory and memory_key in _FAILURE_MEMORY:
+                    failed_attempts.append(f"{candidate_rule}[idx={try_idx}](memory-skip)")
+                    continue
+
+                attempt = propose_fix(current, candidate_rule, try_idx)
+                if attempt is None or not attempt.get('is_valid'):
+                    failed_attempts.append(f"{candidate_rule}[idx={try_idx}]")
+                    if use_failure_memory:
+                        _FAILURE_MEMORY[memory_key] = True
+                    continue
+
+                # valid해도 실제로 이 규칙이 재진단에서 사라졌는지 확인
+                recheck = detect_toxicophores(attempt['new_smiles'])
+                still_flagged = any(p['rule_name'] == candidate_rule for p in recheck)
+
+                if not still_flagged:
+                    rule_fixed = attempt
+                    candidate_reason = f"{this_candidate_reason} (candidate_idx={try_idx}, 완전 해소)"
+                    break
+                else:
+                    failed_attempts.append(f"{candidate_rule}[idx={try_idx}](valid이나 미해소)")
+                    fallback_attempt = attempt
+                    fallback_used_idx = try_idx
+                    fallback_reason = f"{this_candidate_reason} (candidate_idx={try_idx}, 부분 개선/다음 iteration에서 계속)"
+
+            if rule_fixed is None and fallback_attempt is not None:
+                rule_fixed = fallback_attempt
+                candidate_reason = fallback_reason
+
+            if rule_fixed is not None:
+                fixed = rule_fixed
                 target_rule = candidate_rule
-                candidate_reason = this_candidate_reason
                 break
-            else:
-                failed_attempts.append(candidate_rule)
-                if use_failure_memory:
-                    _FAILURE_MEMORY[memory_key] = True
 
         if fixed is None:
-            reason_detail = (f"이 단계에서 known 규칙 {failed_attempts} 전부를 순서대로 시도했으나 "
-                              f"모두 실행에 실패했습니다(memory-skip 표시는 이전에 실패했던 것으로 "
-                              f"확인되어 재시도 없이 건너뛴 항목). 흔한 원인: 유기금속/무기염 등 특수 "
-                              f"화학종, 고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다.")
-            return {"status": "stuck", "reason": f"시도한 규칙 {failed_attempts} 모두 치환 실패",
+            reason_detail = (f"이 단계에서 known 규칙들의 모든 candidate를 순서대로 시도했으나 "
+                              f"({failed_attempts}) 모두 실행에 실패했습니다(memory-skip 표시는 이전에 "
+                              f"실패했던 것으로 확인되어 재시도 없이 건너뛴 항목). 흔한 원인: 유기금속/무기염 "
+                              f"등 특수 화학종, 고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다.")
+            return {"status": "stuck", "reason": f"시도한 규칙/candidate {failed_attempts} 모두 치환 실패",
                     "reason_detail": reason_detail,
                     "final_smiles": current, "history": history,
                     "skipped_rules": skipped_rules, "skipped_details": skipped_details}

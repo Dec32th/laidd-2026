@@ -213,7 +213,6 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         idx1 = match[pair[0]]
         idx2 = match[pair[1]]
 
-        # 과산화물(O-O) 생성 방지: 삽입 위치 양쪽이 이미 산소면 거부
         if rwmol.GetAtomWithIdx(idx1).GetSymbol() == 'O' or rwmol.GetAtomWithIdx(idx2).GetSymbol() == 'O':
             return None
 
@@ -231,81 +230,83 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         rwmol.GetAtomWithIdx(idx2).SetNoImplicit(False)
 
     elif edit_type == "insert_atom_multi_chain":
-        # 긴 지방족 사슬 전용(탄소 또는 비카르보닐 에테르 산소로 구성된
-        # 사슬 모두 인식): 매치 시작점에서 양쪽 방향을 모두 추적해 더 긴
-        # 쪽을 진짜 사슬로 채택한 뒤, 필요한 만큼 산소를 균등 삽입
-        start_idx = match[candidate["chain_start_idx_in_pattern"]]
+        # 실제 RDKit BRENK Aliphatic_long_chain SMARTS는
+        # "[R0&D2][R0&D2][R0&D2][R0&D2]" -> 원소 무관, degree==2 연속
+        # 4개. degree를 3으로 만드는 분기(branch)로 끊는다.
+        # matches[0]만 쓰면 우연히 말단/분기 원자를 앵커로 잡아 사슬
+        # 추적이 즉시 끊길 수 있어(n<4), 모든 매치를 후보로 시도해서
+        # 실제로 가장 긴 사슬이 나오는 앵커를 채택한다.
 
         def _is_chain_member(atom):
-            if atom.GetSymbol() == 'C' and not atom.GetIsAromatic():
-                return True
-            if atom.GetSymbol() == 'O' and atom.GetDegree() == 2 and not atom.GetIsAromatic():
-                for nb in atom.GetNeighbors():
-                    for bond in nb.GetBonds():
-                        if bond.GetBondTypeAsDouble() == 2.0 and nb.GetSymbol() == 'C':
-                            other = bond.GetOtherAtom(nb)
-                            if other.GetSymbol() == 'O':
-                                return False
-                return True
-            return False
+            return (not atom.GetIsAromatic()) and (not atom.IsInRing()) and atom.GetDegree() == 2
 
         def _trace_chain(mol, start, avoid):
-            chain = [start]
-            current = start
-            prev = avoid
-            while True:
-                atom_cur = mol.GetAtomWithIdx(current)
-                if not _is_chain_member(atom_cur):
-                    break
-                next_candidates = [n.GetIdx() for n in atom_cur.GetNeighbors()
-                                    if n.GetIdx() != prev and _is_chain_member(n)]
-                if not next_candidates:
-                    break
-                prev, current = current, next_candidates[0]
+            chain = []
+            current, prev = start, avoid
+            while _is_chain_member(mol.GetAtomWithIdx(current)):
                 chain.append(current)
-                if len(chain) > 30:
+                nbs = [n.GetIdx() for n in mol.GetAtomWithIdx(current).GetNeighbors() if n.GetIdx() != prev]
+                if len(nbs) != 1:
+                    break
+                nxt = nbs[0]
+                if nxt in chain:
+                    break
+                prev, current = current, nxt
+                if len(chain) > 60:
                     break
             return chain
 
-        start_atom = mol.GetAtomWithIdx(start_idx)
-        neighbor_options = [n.GetIdx() for n in start_atom.GetNeighbors() if _is_chain_member(n)]
-
-        best_chain = [start_idx]
-        for nb in neighbor_options:
-            candidate_chain = [start_idx] + _trace_chain(mol, nb, start_idx)
-            if len(candidate_chain) > len(best_chain):
-                best_chain = candidate_chain
-
-        chain_atoms = best_chain
-        if len(chain_atoms) < 4:
-            return None
+        chain_pos = candidate["chain_start_idx_in_pattern"]
+        chain_atoms = []
+        for m in matches:
+            cand_start = m[chain_pos]
+            cand_atom = mol.GetAtomWithIdx(cand_start)
+            cand_neighbors = [n.GetIdx() for n in cand_atom.GetNeighbors()]
+            cand_traces = [_trace_chain(mol, nb, cand_start) for nb in cand_neighbors]
+            cand_traces.sort(key=len, reverse=True)
+            cleft = cand_traces[0] if len(cand_traces) > 0 else []
+            cright = cand_traces[1] if len(cand_traces) > 1 else []
+            cand_chain = list(reversed(cleft)) + [cand_start] + cright
+            if len(cand_chain) > len(chain_atoms):
+                chain_atoms = cand_chain
 
         n = len(chain_atoms)
-        num_inserts = max(1, (n - 1) // 3)
-        step = n / (num_inserts + 1)
-        insert_positions = sorted(set(int(round(step * (i + 1))) for i in range(num_inserts)))
-        insert_positions = [p for p in insert_positions if 0 < p < n]
+        if n < 4:
+            return None
 
-        insert_after = [chain_atoms[p - 1] for p in insert_positions]
-        if not insert_after:
+        insert_positions = list(range(3, n, 4))
+        if insert_positions and (n - 1 - insert_positions[-1]) >= 4:
+            insert_positions.append(min(n - 1, insert_positions[-1] + 4))
+        elif not insert_positions:
+            insert_positions = [min(3, n - 1)]
+
+        branch_atomic_num = 6  # 메틸 분기(탄소). 산소로 분기하면 기존 에테르 O 옆에서
+                                # O-C-O 패턴이 생겨 'het-C-het_not_in_ring'을 새로 유발함
+
+        def _find_branch_carbon(p):
+            for cp in (p, p - 1, p + 1):
+                if 0 <= cp < n:
+                    a = rwmol.GetAtomWithIdx(chain_atoms[cp])
+                    if a.GetSymbol() == 'C' and a.GetTotalNumHs() > 0:
+                        return chain_atoms[cp]
+            for radius in range(2, n):
+                for cp in (p - radius, p + radius):
+                    if 0 <= cp < n:
+                        a = rwmol.GetAtomWithIdx(chain_atoms[cp])
+                        if a.GetSymbol() == 'C' and a.GetTotalNumHs() > 0:
+                            return chain_atoms[cp]
             return None
 
         added = 0
-        for a_idx in insert_after:
-            a_pos = chain_atoms.index(a_idx)
-            b_idx = chain_atoms[a_pos + 1]
-            # 삽입 지점 양쪽이 이미 산소면(과산화물 방지) 건너뜀
-            if mol.GetAtomWithIdx(a_idx).GetSymbol() == 'O' or mol.GetAtomWithIdx(b_idx).GetSymbol() == 'O':
+        used_targets = set()
+        for p in insert_positions:
+            target_idx = _find_branch_carbon(p)
+            if target_idx is None or target_idx in used_targets:
                 continue
-            bond = rwmol.GetBondBetweenAtoms(a_idx, b_idx)
-            if bond is None:
-                continue
-            rwmol.RemoveBond(a_idx, b_idx)
-            new_o = rwmol.AddAtom(Chem.Atom(8))
-            rwmol.AddBond(a_idx, new_o, Chem.BondType.SINGLE)
-            rwmol.AddBond(new_o, b_idx, Chem.BondType.SINGLE)
-            rwmol.GetAtomWithIdx(a_idx).SetNoImplicit(False)
-            rwmol.GetAtomWithIdx(b_idx).SetNoImplicit(False)
+            new_atom = rwmol.AddAtom(Chem.Atom(branch_atomic_num))
+            rwmol.AddBond(target_idx, new_atom, Chem.BondType.SINGLE)
+            rwmol.GetAtomWithIdx(target_idx).SetNoImplicit(False)
+            used_targets.add(target_idx)
             added += 1
 
         if added == 0:
