@@ -74,6 +74,17 @@ PRECEDENT_LIBRARY = [
                      "확인한 결과 전부 매크로락톤/당 고리 내부의 고리형 에테르로, 우리 규칙이 "
                      "다루는 \"고리 밖 열린 사슬\" 상황과는 구조적으로 다름 - 이 계열은 직접적 "
                      "근거로 부적합함이 확인됨."},
+    {"rule": "isolated_alkene", "type": "긍정_승인약물쌍",
+     "description": "SIROLIMUS(시롤리무스), TACROLIMUS ANHYDROUS(타크로리무스) - 둘 다 ChEMBL "
+                     "조회로 승인·비철수 확인됨(withdrawn_flag=False), 대형 매크로라이드 면역억제제로 "
+                     "현재도 널리 처방됨. problem_smarts로 직접 매치되는 고립 지방족 알켄이 구조 "
+                     "안에 실제 존재 - 고립 알켄이 항상 제거 대상은 아님을 보여주는 실제 승인약물 사례."},
+    {"rule": "isolated_alkene", "type": "위험=메커니즘_참고_인과불명",
+     "description": "CYCLOBARBITAL, HEXOBARBITAL 둘 다 ChEMBL 조회로 withdrawn_flag=True 확인됨, "
+                     "둘 다 problem_smarts에 매치되는 사이클로헥세닐 고립 알켄 치환기를 가짐. "
+                     "다만 바르비투르산염 계열은 호흡억제·의존성 등 일반적 안전성 문제로 철수된 "
+                     "사례가 많아, 이 알켄 구조가 철수의 직접 원인이라는 인과관계는 확인되지 않음 "
+                     "(상관관계만 관찰, 문헌 추가 확인 필요)."},
 ]
 
 
