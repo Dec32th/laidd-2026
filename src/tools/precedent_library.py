@@ -1,3 +1,5 @@
+
+
 """선례 라이브러리 — 승인/철수 약물, 정량 활성 데이터, 도킹 검증 결과를
 판단 에이전트 프롬프트에 실시간 주입하기 위한 구조화된 근거 저장소.
 모든 항목은 이 세션에서 ChEMBL/GtoPdb API 조회 또는 실제 도킹 실행으로
@@ -57,6 +59,21 @@ PRECEDENT_LIBRARY = [
      "description": "NQO1 도킹 검증: 퀴논(-3.29)→하이드로퀴논(-4.08), 결합 강화(-0.79). "
                      "실제 표적 효소와의 결합력이 오히려 개선되는 것으로 실측 확인됨 "
                      "(hydroquinone 규칙과 동일 표적 데이터 공유)."},
+    {"rule": "Aliphatic_long_chain", "type": "긍정_승인약물_확인(구조는_동의어로_대체확인)",
+     "description": "POLIDOCANOL(라우릴알코올+에틸렌옥사이드 평균 9개 반복부가체)은 ChEMBL 조회로 "
+                     "승인 확인됨(max_phase=4.0, first_approval=2010, ATC C05BB02, "
+                     "dosed_ingredient=True, withdrawn=False, 상품명 Asclera/Aethoxysklerol). "
+                     "ChEMBL에 단일 SMILES는 없으나(polymer_flag=1, structure_type=NONE) "
+                     "이는 다분산 고분자라 원천적으로 단일 구조가 없기 때문이며, 공식 동의어"
+                     "(USP: Polyoxyl 9 lauryl ether, JAN: Lauromacrogol 400)가 "
+                     "\"장쇄 알킬+반복 에테르\" 구조를 명확히 정의함 - 실제 승인약물에서 "
+                     "이 전략이 쓰이고 있음을 뒷받침."},
+    {"rule": "Aliphatic_long_chain", "type": "부정_참고사례_검증필요",
+     "description": "ChEMBL 서브구조 검색(에테르 삽입 사슬 모티프)으로 매치된 승인약물은 "
+                     "에리스로마이신/아지스로마이신/암포테리신B였으나, 매치 위치를 IsInRing으로 "
+                     "확인한 결과 전부 매크로락톤/당 고리 내부의 고리형 에테르로, 우리 규칙이 "
+                     "다루는 \"고리 밖 열린 사슬\" 상황과는 구조적으로 다름 - 이 계열은 직접적 "
+                     "근거로 부적합함이 확인됨."},
 ]
 
 
