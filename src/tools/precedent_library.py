@@ -85,6 +85,12 @@ PRECEDENT_LIBRARY = [
                      "다만 바르비투르산염 계열은 호흡억제·의존성 등 일반적 안전성 문제로 철수된 "
                      "사례가 많아, 이 알켄 구조가 철수의 직접 원인이라는 인과관계는 확인되지 않음 "
                      "(상관관계만 관찰, 문헌 추가 확인 필요)."},
+    {"rule": "nitro_group", "type": "위험=메커니즘_참고_검증완료",
+     "description": "METRONIDAZOLE, NITROFURANTOIN, BENZNIDAZOLE 셋 다 ChEMBL 조회로 승인·비철수 "
+                     "확인됨(max_phase=4.0, withdrawn_flag=False), SMILES에 니트로기([N+](=O)[O-]) "
+                     "실제 존재 확인. 항균/항기생충제 계열에서 니트로기의 선택적 환원 활성화 자체가 "
+                     "치료 메커니즘인 프로드러그 설계 사례 - 이런 계열에는 니트로기 제거가 "
+                     "부적절함을 실제 조회로 검증함."},
 ]
 
 
