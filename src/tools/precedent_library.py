@@ -131,6 +131,14 @@ PRECEDENT_LIBRARY = [
                      "실제 매치 확인. 전부 신경근 차단제(근이완제) 계열로, 4차 암모늄의 영구 양전하가 "
                      "니코틴성 아세틸콜린 수용체 결합에 필수적인 활성 메커니즘 그 자체 - 이 계열에는 "
                      "4차 질소 제거가 약효 상실로 직결됨을 실제 조회로 검증함."},
+    {"rule": "imine_1_general", "type": "위험=메커니즘_참고_검증완료",
+     "description": "DIAZEPAM, CLONAZEPAM, NITRAZEPAM, OXAZEPAM, LORAZEPAM, BROMAZEPAM, "
+                     "CHLORDIAZEPOXIDE, CLOZAPINE, GEMIFLOXACIN 9종 ChEMBL 조회로 승인·비철수 확인됨"
+                     "(max_phase=4.0, withdrawn_flag=False), problem_smarts 실제 매치 확인. 다수가 "
+                     "벤조디아제핀 계열로 역사상 가장 널리 처방된 약물군 중 하나 - 다만 이들의 C=N은 "
+                     "7원 diazepine 고리 안에 갇힌 고리형 이민으로, 개방 사슬형(비고리) 쉬프 염기보다 "
+                     "가수분해에 안정적인 구조적 특성이 있어 '고리형 이민'에 한정된 근거로 해석해야 함. "
+                     "FLUNITRAZEPAM은 withdrawn_flag=True(남용/규제 이슈 가능성, 독성 인과 불명)."},
 ]
 
 
