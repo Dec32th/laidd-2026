@@ -125,6 +125,12 @@ PRECEDENT_LIBRARY = [
                      "승인약물은 0건. 알데히드의 친전자성 반응 우려가 실제로 승인 단계에서 "
                      "강하게 작용해 최종 약물 형태로 잘 남지 않음을 시사함 (반증 근거 부재 = "
                      "규칙의 타당성을 간접적으로 뒷받침)."},
+    {"rule": "quaternary_nitrogen_2", "type": "위험=메커니즘_참고_검증완료",
+     "description": "SUXAMETHONIUM(석시닐콜린), TUBOCURARINE, VECURONIUM, ROCURONIUM 넷 다 ChEMBL "
+                     "조회로 승인·비철수 확인됨(max_phase=4.0, withdrawn_flag=False), problem_smarts "
+                     "실제 매치 확인. 전부 신경근 차단제(근이완제) 계열로, 4차 암모늄의 영구 양전하가 "
+                     "니코틴성 아세틸콜린 수용체 결합에 필수적인 활성 메커니즘 그 자체 - 이 계열에는 "
+                     "4차 질소 제거가 약효 상실로 직결됨을 실제 조회로 검증함."},
 ]
 
 
