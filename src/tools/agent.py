@@ -1,6 +1,10 @@
+
 import json
 from src.tools.replacement_library import get_replacement_candidates
 
+_llm_error_log = []
+_llm_consecutive_failures = 0
+_LLM_FAILURE_LIMIT = 3
 
 def _call_llm(client, model_name, prompt, client_type="gemini"):
     """client_type에 따라 Gemini SDK 또는 OpenAI 호환 SDK로 호출하고,
@@ -9,11 +13,17 @@ def _call_llm(client, model_name, prompt, client_type="gemini"):
         response = client.models.generate_content(model=model_name, contents=prompt)
         return response.text
     elif client_type == "openai_compatible":
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=500,
+                timeout=30,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            _llm_error_log.append(repr(e))
+            return f"ERROR: LLM 호출 실패/타임아웃 - {e}"
     else:
         raise ValueError(f"알 수 없는 client_type: {client_type}")
 

@@ -294,3 +294,59 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
 
     return {"status": "max_iterations_reached", "final_smiles": current, "history": history,
             "skipped_rules": skipped_rules, "skipped_details": skipped_details}
+
+
+def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
+                               llm_client=None, llm_model=None, llm_client_type="gemini",
+                               max_workers=5, progress=True):
+    """여러 분자에 iterative_fix_loop를 스레드 병렬로 적용.
+    LLM API 호출이 병목인 경우(네트워크 대기 시간) 유효한 개선이며,
+    화학 계산 로직(iterative_fix_loop 자체)은 전혀 수정하지 않는다.
+    반환: [(smiles, result_dict), ...] (완료 순서, 입력 순서와 다를 수 있음)
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    def _process_one(smi):
+        r = iterative_fix_loop(
+            smi, max_iterations=max_iterations, candidate_idx=candidate_idx,
+            llm_client=llm_client, llm_model=llm_model, llm_client_type=llm_client_type,
+        )
+        return smi, r
+
+    results = []
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_process_one, smi): smi for smi in smiles_list}
+        for i, future in enumerate(as_completed(futures)):
+            smi, r = future.result()
+            results.append((smi, r))
+            if progress:
+                print(f"[{i+1}/{len(smiles_list)}] {smi[:30]} -> {r['status']}")
+    return results
+
+
+def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
+                               llm_client=None, llm_model=None, llm_client_type="gemini",
+                               max_workers=5, progress=True):
+    """여러 분자에 iterative_fix_loop를 스레드 병렬로 적용.
+    LLM API 호출이 병목인 경우(네트워크 대기 시간) 유효한 개선이며,
+    화학 계산 로직(iterative_fix_loop 자체)은 전혀 수정하지 않는다.
+    반환: [(smiles, result_dict), ...] (완료 순서, 입력 순서와 다를 수 있음)
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    def _process_one(smi):
+        r = iterative_fix_loop(
+            smi, max_iterations=max_iterations, candidate_idx=candidate_idx,
+            llm_client=llm_client, llm_model=llm_model, llm_client_type=llm_client_type,
+        )
+        return smi, r
+
+    results = []
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_process_one, smi): smi for smi in smiles_list}
+        for i, future in enumerate(as_completed(futures)):
+            smi, r = future.result()
+            results.append((smi, r))
+            if progress:
+                print(f"[{i+1}/{len(smiles_list)}] {smi[:30]} -> {r['status']}")
+    return results
