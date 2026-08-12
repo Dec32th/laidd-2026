@@ -1,7 +1,10 @@
+
 from rdkit import Chem
 from rdkit.Chem import rdMMPA
 from src.tools.replacement_library import get_replacement_candidates
 import hashlib
+from src.tools.agent import (ask_llm_which_problem_to_fix, ask_llm_which_candidate_to_use,
+                                  ask_llm_debate_fix, should_debate)
 
 def _library_version_hash():
     from src.tools.replacement_library import get_replacement_candidates
@@ -139,7 +142,8 @@ def _candidate_order_for_rule(rule_name: str, preferred_idx: int):
 
 def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
                         llm_client=None, llm_model=None, llm_client_type="gemini",
-                        use_failure_memory: bool = True):
+                        use_failure_memory: bool = True, use_debate: bool = False,
+                        debate_max_rounds: int = 2):
     """진단->치환->재평가를 반복.
     핵심: candidate가 '화학적으로 유효(is_valid)'해도 대상 규칙이 실제로
     해소됐는지 재진단(detect_toxicophores)까지 확인한다. 그렇지 않으면
@@ -247,8 +251,36 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                 still_flagged = any(p['rule_name'] == candidate_rule for p in recheck)
 
                 if not still_flagged:
+                    candidate_obj = get_replacement_candidates(candidate_rule)['candidates'][try_idx]
+                    debate_suffix = ""
+
+                    if use_debate and llm_client is not None and should_debate(candidate_obj.get('rationale', '')):
+                        debate_result = ask_llm_debate_fix(
+                            llm_client, llm_model, current, attempt['new_smiles'], candidate_rule,
+                            candidate_obj['name'], candidate_obj.get('rationale', ''),
+                            client_type=llm_client_type, max_rounds=debate_max_rounds,
+                        )
+                        if debate_result['final_verdict'] == 'rejected':
+                            failed_attempts.append(f"{candidate_rule}[idx={try_idx}](토의 결과 반려)")
+                            if use_failure_memory:
+                                _FAILURE_MEMORY[memory_key] = True
+                            continue
+                        elif debate_result['final_verdict'] == 'escalate':
+                            flagged_for_review.add(candidate_rule)
+                            if candidate_rule not in skipped_rules:
+                                skipped_rules.append(candidate_rule)
+                            skipped_details.append({
+                                "rule_name": candidate_rule,
+                                "reason": f"LLM 토의가 {debate_max_rounds}라운드 안에 합의에 도달하지 못해 "
+                                          f"사람 검토로 넘김 (마지막 논쟁: {debate_result['rounds'][-1]['text']})",
+                                "atom_indices": next((p['atom_indices'] for p in problems if p['rule_name'] == candidate_rule), []),
+                            })
+                            failed_attempts.append(f"{candidate_rule}[idx={try_idx}](토의 합의 실패, escalate)")
+                            continue
+                        debate_suffix = " (토의 승인)"
+
                     rule_fixed = attempt
-                    candidate_reason = f"{this_candidate_reason} (candidate_idx={try_idx}, 완전 해소)"
+                    candidate_reason = f"{this_candidate_reason} (candidate_idx={try_idx}, 완전 해소){debate_suffix}"
                     break
                 else:
                     failed_attempts.append(f"{candidate_rule}[idx={try_idx}](valid이나 미해소)")
