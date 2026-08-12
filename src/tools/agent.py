@@ -1,4 +1,3 @@
-
 import json
 from src.tools.replacement_library import get_replacement_candidates
 
@@ -13,17 +12,21 @@ def _call_llm(client, model_name, prompt, client_type="gemini"):
         response = client.models.generate_content(model=model_name, contents=prompt)
         return response.text
     elif client_type == "openai_compatible":
-        try:
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=500,
-                timeout=30,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            _llm_error_log.append(repr(e))
-            return f"ERROR: LLM 호출 실패/타임아웃 - {e}"
+        for attempt in range(2):  # rate limit 시 1회만 재시도
+            try:
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=500,
+                    timeout=30,
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                _llm_error_log.append(repr(e))
+                if 'RateLimitError' in type(e).__name__ and attempt == 0:
+                    time.sleep(3)
+                    continue
+                return f"ERROR: LLM 호출 실패/타임아웃 - {e}"
     else:
         raise ValueError(f"알 수 없는 client_type: {client_type}")
 
