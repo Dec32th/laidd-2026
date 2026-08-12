@@ -1,9 +1,15 @@
+
 import json
 from src.tools.replacement_library import get_replacement_candidates
 
 _llm_error_log = []
 _llm_consecutive_failures = 0
 _LLM_FAILURE_LIMIT = 3
+_debate_call_budget = {"remaining": 100}
+
+def set_debate_budget(n):
+    """토의(debate)에 쓸 수 있는 총 LLM 호출 수 상한을 재설정."""
+    _debate_call_budget["remaining"] = n
 
 def _call_llm(client, model_name, prompt, client_type="gemini"):
     """client_type에 따라 Gemini SDK 또는 OpenAI 호환 SDK로 호출하고,
@@ -19,6 +25,7 @@ def _call_llm(client, model_name, prompt, client_type="gemini"):
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=500,
                     timeout=30,
+                    extra_body={"enable_thinking": False},
                 )
                 return response.choices[0].message.content
             except Exception as e:
@@ -126,3 +133,84 @@ def ask_llm_which_candidate_to_use(client, model_name, smiles, rule_name, client
     if not isinstance(idx, int) or not (-1 <= idx < len(candidates)):
         return {"candidate_idx": 0, "reason": "LLM 응답 idx 범위 오류, 기본값 사용"}
     return result
+
+
+def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_name,
+                        candidate_name, candidate_rationale, client_type="gemini",
+                        max_rounds=2):
+    """제안자(원래 candidate를 고른 논리)와 검토자(critic)가 여러 라운드
+    대화하며 합의에 도달하려 시도. 매 라운드 critic이 판단하고, 반려하면
+    proposer가 반박, critic이 재판단. max_rounds 안에 합의(양쪽 다 승인,
+    또는 critic이 최종 반려로 확정) 안 되면 "escalate"로 사람 검토行.
+
+    반환: {"final_verdict": "approved"|"rejected"|"escalate",
+           "rounds": [{"role": "critic"|"proposer", "text": str}, ...],
+           "consensus_reached": bool}
+    """
+    if _debate_call_budget["remaining"] <= 0:
+        return {"final_verdict": "approved", "rounds": [], "consensus_reached": True,
+                "budget_exhausted": True}
+    _debate_call_budget["remaining"] -= 1
+    rounds_log = []
+    proposer_argument = candidate_rationale
+
+    for round_num in range(1, max_rounds + 1):
+        critic_prompt = f"""당신은 신약개발 화학 검토자(critic)입니다. 동료 화학자가 아래
+치환을 제안했습니다.
+
+원본 분자: {smiles_before}
+치환 후 분자: {smiles_after}
+해결하려던 문제: {rule_name}
+제안된 치환: {candidate_name}
+제안자의 근거: {proposer_argument}
+
+이 치환에 동의하는지 비판적으로 검토하세요. 동의하지 않는다면 구체적으로
+어떤 점이 문제인지 명시하세요(새로운 독성 구조 생성 가능성, 근거의
+논리적 결함, precedent 오독 등).
+
+반드시 아래 JSON 형식으로만 답하세요.
+{{"verdict": "approved" 또는 "rejected", "reason": "판단 이유, 반려 시 구체적 반론 포함"}}
+"""
+        critic_text = _call_llm(client, model_name, critic_prompt, client_type)
+        critic_result = _parse_json_response(
+            critic_text, {"verdict": "approved", "reason": "JSON 파싱 실패, 기본 승인"}
+        )
+        rounds_log.append({"role": "critic", "round": round_num, "text": critic_result})
+
+        if critic_result.get("verdict") == "approved":
+            return {"final_verdict": "approved", "rounds": rounds_log, "consensus_reached": True}
+
+        if round_num == max_rounds:
+            break
+
+        proposer_prompt = f"""당신은 방금 아래 치환을 제안한 화학자입니다.
+
+원본 분자: {smiles_before}
+치환 후 분자: {smiles_after}
+당신의 원래 근거: {proposer_argument}
+
+동료 검토자(critic)가 다음과 같이 반려했습니다: "{critic_result.get('reason', '')}"
+
+이 반론에 대해 답하세요. 반론이 타당하면 인정하고 제안을 철회하세요.
+반론이 부당하다면 왜 원래 치환이 여전히 타당한지 반박하세요.
+
+반드시 아래 JSON 형식으로만 답하세요.
+{{"stance": "withdraw" 또는 "defend", "argument": "반박 또는 철회 이유"}}
+"""
+        proposer_text = _call_llm(client, model_name, proposer_prompt, client_type)
+        proposer_result = _parse_json_response(
+            proposer_text, {"stance": "withdraw", "argument": "JSON 파싱 실패, 기본 철회"}
+        )
+        rounds_log.append({"role": "proposer", "round": round_num, "text": proposer_result})
+
+        if proposer_result.get("stance") == "withdraw":
+            return {"final_verdict": "rejected", "rounds": rounds_log, "consensus_reached": True}
+
+        proposer_argument = proposer_result.get("argument", proposer_argument)
+
+    return {"final_verdict": "escalate", "rounds": rounds_log, "consensus_reached": False}
+def should_debate(candidate_rationale):
+    """이 candidate가 토의(debate)를 거칠 필요가 있는지 판단.
+    rationale에 '[참고]'가 있으면 실제 승인약물 사례와 겹칠 수 있다는
+    뜻이므로, 단순 채택 대신 토의로 한 번 더 검토해야 함."""
+    return '[참고]' in (candidate_rationale or '')
