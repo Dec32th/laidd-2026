@@ -51,12 +51,12 @@ def _save_cache(cache):
         json.dump(cache, f, ensure_ascii=False, indent=2)
 
 
-def prepare_ligand_pdbqt(smiles, filename):
+def prepare_ligand_pdbqt(smiles, filename, seed=42):
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
     mol = Chem.AddHs(mol)
-    if AllChem.EmbedMolecule(mol, randomSeed=42) != 0:
+    if AllChem.EmbedMolecule(mol, randomSeed=seed) != 0:
         return None
     AllChem.MMFFOptimizeMolecule(mol)
     Chem.MolToPDBFile(mol, f"{filename}.pdb")

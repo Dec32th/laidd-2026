@@ -1,0 +1,10 @@
+{
+  "catechol|NCCc1ccc(O)c(O)c1|COc1ccc(CCN)cc1O": {
+    "target": "COMT",
+    "pdb_id": "1VID",
+    "rule": "catechol",
+    "score_original": -5.592,
+    "score_fixed": -5.844,
+    "delta": -0.25200000000000067
+  }
+}
