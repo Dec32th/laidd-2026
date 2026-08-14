@@ -11,6 +11,19 @@ def set_debate_budget(n):
     """토의(debate)에 쓸 수 있는 총 LLM 호출 수 상한을 재설정."""
     _debate_call_budget["remaining"] = n
 
+_injected_sascorer = {"module": None}
+_injected_tox_predictor = {"fn": None}
+
+def set_sascorer_module(module):
+    """세션마다 다운로드/import한 sascorer 모듈을 등록."""
+    _injected_sascorer["module"] = module
+
+def set_tox_predictor(fn):
+    """(original_smiles, fixed_smiles, rule_name) -> tox_delta(float) 또는 None
+    을 반환하는 콜백을 등록. 노트북마다 다르게 학습한 baseline 모델을
+    감싸서 넘기면 됨."""
+    _injected_tox_predictor["fn"] = fn
+
 def _call_llm(client, model_name, prompt, client_type="gemini"):
     """client_type에 따라 Gemini SDK 또는 OpenAI 호환 SDK로 호출하고,
     응답 텍스트만 통일된 형태로 반환."""
@@ -64,6 +77,30 @@ def _try_get_docking_evidence(rule_name, smiles_before, smiles_after):
     except Exception:
         return None
 
+def _try_compute_score(rule_name, smiles_before, smiles_after, docking_evidence=None):
+    """등록된 sascorer/tox_predictor/도킹 결과를 모아 종합 점수 계산.
+    일부만 등록돼 있어도 compute_multi_objective_score가 나머지로
+    자동 정규화하므로 실패하지 않음. 계산 자체가 실패하면 None."""
+    try:
+        from src.tools.scoring import compute_multi_objective_score
+
+        tox_delta = None
+        if _injected_tox_predictor["fn"] is not None:
+            try:
+                tox_delta = _injected_tox_predictor["fn"](smiles_before, smiles_after, rule_name)
+            except Exception:
+                tox_delta = None
+
+        precedent_docking_delta = docking_evidence["delta"] if docking_evidence else None
+
+        return compute_multi_objective_score(
+            smiles_before, smiles_after, rule_name,
+            tox_delta=tox_delta,
+            sascorer_module=_injected_sascorer["module"],
+            precedent_docking_delta=precedent_docking_delta,
+        )
+    except Exception:
+        return None
 
 def ask_llm_which_problem_to_fix(client, model_name, smiles, problems, client_type="gemini"):
     """여러 toxicophore 중 어떤 것부터 고칠지 LLM에게 판단을 요청."""
@@ -171,6 +208,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
 
     for round_num in range(1, max_rounds + 1):
         docking_evidence = _try_get_docking_evidence(rule_name, smiles_before, smiles_after)
+        score_result = _try_compute_score(rule_name, smiles_before, smiles_after, docking_evidence)
         critic_prompt = f"""당신은 신약개발 화학 검토자(critic)입니다. 동료 화학자가 아래
 치환을 제안했습니다.
 
@@ -180,6 +218,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
 제안된 치환: {candidate_name}
 제안자의 근거: {proposer_argument}
 {f"실측 도킹 결합력 변화: {docking_evidence['target']} 표적, {docking_evidence['score_original']:.2f} → {docking_evidence['score_fixed']:.2f} kcal/mol (delta {docking_evidence['delta']:+.2f}). 이 정량 데이터를 판단에 반영하세요." if docking_evidence else ""}
+{f"종합 점수: {score_result['composite_score']:.2f} (세부: {score_result['component_scores']}). 이것도 판단에 참고하세요." if score_result and score_result.get('composite_score') is not None else ""}
 
 이 치환에 동의하는지 비판적으로 검토하세요. 동의하지 않는다면 구체적으로
 어떤 점이 문제인지 명시하세요(새로운 독성 구조 생성 가능성, 근거의
