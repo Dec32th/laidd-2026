@@ -1,5 +1,5 @@
-
 import json
+import time
 from src.tools.replacement_library import get_replacement_candidates
 
 _llm_error_log = []
@@ -48,6 +48,21 @@ def _parse_json_response(text, fallback):
         return json.loads(text)
     except json.JSONDecodeError:
         return fallback
+
+def _try_get_docking_evidence(rule_name, smiles_before, smiles_after):
+    """도킹 표적이 등록된 규칙이면 자동으로 도킹 실행, 아니면 None.
+    도킹 실패/미등록/예외는 전부 조용히 None으로 처리(critic 프롬프트에서
+    도킹 근거 없이 진행하는 것으로 자연스럽게 폴백)."""
+    try:
+        from src.tools.docking import auto_dock_precedent, DOCKING_TARGETS
+        if rule_name not in DOCKING_TARGETS:
+            return None
+        result = auto_dock_precedent(rule_name, smiles_before, smiles_after)
+        if result.get('error') or result.get('delta') is None:
+            return None
+        return result
+    except Exception:
+        return None
 
 
 def ask_llm_which_problem_to_fix(client, model_name, smiles, problems, client_type="gemini"):
@@ -155,6 +170,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
     proposer_argument = candidate_rationale
 
     for round_num in range(1, max_rounds + 1):
+        docking_evidence = _try_get_docking_evidence(rule_name, smiles_before, smiles_after)
         critic_prompt = f"""당신은 신약개발 화학 검토자(critic)입니다. 동료 화학자가 아래
 치환을 제안했습니다.
 
@@ -163,6 +179,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
 해결하려던 문제: {rule_name}
 제안된 치환: {candidate_name}
 제안자의 근거: {proposer_argument}
+{f"실측 도킹 결합력 변화: {docking_evidence['target']} 표적, {docking_evidence['score_original']:.2f} → {docking_evidence['score_fixed']:.2f} kcal/mol (delta {docking_evidence['delta']:+.2f}). 이 정량 데이터를 판단에 반영하세요." if docking_evidence else ""}
 
 이 치환에 동의하는지 비판적으로 검토하세요. 동의하지 않는다면 구체적으로
 어떤 점이 문제인지 명시하세요(새로운 독성 구조 생성 가능성, 근거의

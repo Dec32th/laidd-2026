@@ -14,5 +14,13 @@
     "score_original": -7.624,
     "score_fixed": -7.382,
     "delta": 0.242
+  },
+  "catechol|NCCc1ccc(O)c(O)c1|COc1ccc(CCN)cc1O": {
+    "target": "COMT",
+    "pdb_id": "1VID",
+    "rule": "catechol",
+    "score_original": -5.177,
+    "score_fixed": -5.187,
+    "delta": -0.010000000000000675
   }
 }
