@@ -15,7 +15,7 @@ VINA_BIN = os.path.join(os.getcwd(), "vina_bin")
 DOCKING_TARGETS = {
     "catechol": {
         "target_name": "COMT", "pdb_id": "1VID",
-        "ligand_code": "DNC", "keep_hetatm_codes": ["MG"],
+        "ligand_code": "DNC", "keep_hetatm_codes": ["MG", "SAM"],
         "box_size": [20, 20, 20],
     },
     "Michael_acceptor_1": {
