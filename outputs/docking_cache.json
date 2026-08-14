@@ -6,5 +6,13 @@
     "score_original": -4.128,
     "score_fixed": -4.316,
     "delta": -0.18799999999999972
+  },
+  "Michael_acceptor_1|COC1=CC(=C(C=C1NC2=NC=CC(=N2)C3=CN(C4=CC=CC=C43)C)OC)NC(=O)C=CCN(C)C|COC1=CC(=C(C=C1NC2=NC=CC(=N2)C3=CN(C4=CC=CC=C43)C)OC)NC(=O)CCCN(C)C": {
+    "target": "EGFR",
+    "pdb_id": "6JX4",
+    "rule": "Michael_acceptor_1",
+    "score_original": -7.624,
+    "score_fixed": -7.382,
+    "delta": 0.242
   }
 }
