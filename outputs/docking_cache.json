@@ -1,1 +1,10 @@
-{}
+{
+  "hydroquinone|CC1=C(C)C(=O)C(C)=C(C)C1=O|CC1=C(C)C(O)=C(C)C(C)=C1O": {
+    "target": "NQO1",
+    "pdb_id": "1DXO",
+    "rule": "hydroquinone",
+    "score_original": -4.128,
+    "score_fixed": -4.316,
+    "delta": -0.18799999999999972
+  }
+}

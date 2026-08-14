@@ -24,13 +24,13 @@ DOCKING_TARGETS = {
         "box_size": [20, 20, 20],
     },
     "hydroquinone": {
-        "target_name": "NQO1", "pdb_id": None,
-        "ligand_code": None, "keep_hetatm_codes": ["FAD"],
+        "target_name": "NQO1", "pdb_id": "1DXO",
+        "ligand_code": "DQN", "keep_hetatm_codes": ["FAD"],
         "box_size": [20, 20, 20],
     },
     "quinone_A(370)": {
-        "target_name": "NQO1", "pdb_id": None,
-        "ligand_code": None, "keep_hetatm_codes": ["FAD"],
+        "target_name": "NQO1", "pdb_id": "1DXO",
+        "ligand_code": "DQN", "keep_hetatm_codes": ["FAD"],
         "box_size": [20, 20, 20],
     },
 }
