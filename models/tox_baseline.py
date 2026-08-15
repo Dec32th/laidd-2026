@@ -1,3 +1,4 @@
+
 """Tox21 baseline 독성 예측 모델. 매 세션 직접 학습해서 사용(random_state
 고정으로 재현성 확보). debate 로직의 tox_delta 콜백에 연결하기 위한 래퍼."""
 
@@ -12,6 +13,10 @@ _generator = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
 def smiles_to_ecfp(smiles):
     mol = Chem.MolFromSmiles(smiles)
     return _generator.GetFingerprintAsNumPy(mol) if mol else None
+
+def smiles_to_fp_bitvect(smiles):
+    mol = Chem.MolFromSmiles(smiles)
+    return _generator.GetFingerprint(mol) if mol else None
 
 
 def train_tox21_baseline(data):
