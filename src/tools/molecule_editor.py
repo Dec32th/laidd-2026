@@ -198,8 +198,22 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             problem_reason = problem_decision.get('reason', '')
             ordered_rules = [preferred_rule] + [p['rule_name'] for p in known_problems if p['rule_name'] != preferred_rule]
         else:
-            problem_reason = "규칙 기반(리스트 순서대로)"
-            ordered_rules = [p['rule_name'] for p in known_problems]
+            # 다중 문제 충돌 조정: 각 문제를 먼저 고쳤을 때 남는 전체
+            # toxicophore 수가 가장 적어지는 순서로 정렬(그리디, LLM 미사용).
+            sim_scores = {}
+            for p in known_problems:
+                rn = p['rule_name']
+                try:
+                    trial = propose_fix(current, rn, candidate_idx)
+                    if trial is None or not trial.get('is_valid'):
+                        sim_scores[rn] = 999
+                        continue
+                    remaining = detect_toxicophores(trial['new_smiles'])
+                    sim_scores[rn] = len(remaining)
+                except Exception:
+                    sim_scores[rn] = 999
+            ordered_rules = sorted(sim_scores, key=sim_scores.get)
+            problem_reason = f"규칙 기반(충돌 조정: 남는 문제 수 적은 순 - {sim_scores})"
 
         fixed = None
         target_rule = None
@@ -207,6 +221,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         failed_attempts = []
 
         for candidate_rule in ordered_rules:
+            debate_log_for_step = None
             if llm_client is not None:
                 candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, candidate_rule, client_type=llm_client_type)
                 preferred_candidate_idx = candidate_decision['candidate_idx']
@@ -277,6 +292,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                             })
                             failed_attempts.append(f"{candidate_rule}[idx={try_idx}](토의 합의 실패, escalate)")
                             continue
+                        debate_log_for_step = debate_result['rounds']
                         debate_suffix = " (토의 승인)"
 
                     rule_fixed = attempt
@@ -322,6 +338,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             "problem_reason": problem_reason,
             "candidate_used": fixed['candidate_used'],
             "candidate_reason": candidate_reason,
+            "debate_rounds": debate_log_for_step,
         })
 
     return {"status": "max_iterations_reached", "final_smiles": current, "history": history,
