@@ -110,6 +110,16 @@ PRECEDENT_LIBRARY = [
                      "메커니즘 - 이 경우 인산에스터 절단이 규칙이 우려하는 신경독성 반응성이 아니라 "
                      "오히려 활성화 경로이므로, 프로드러그 맥락에서는 본 규칙의 무분별한 적용이 "
                      "부적절할 수 있음을 실제 조회로 검증함."},
+    {"rule": "phosphor", "type": "부정_참고사례_검증필요",
+     "description": "phosphor 규칙의 유일한 candidate(cleave_bond)는 에스터형 산소가 있는 "
+                     "유기인산 트리에스터(포스페이트)만 처리 가능함. valid set에서 phosphor로 "
+                     "진단된 33건 중 24건(73%)은 에스터 산소가 없는 트리아릴포스핀옥사이드 등 "
+                     "구조적으로 다른 화학종. ChEMBL 서브구조 검색(트리페닐포스핀옥사이드 코어, "
+                     "62건 매치)에서 승인약물(max_phase=4) 0건 확인 — 이 골격은 약물 후보로 "
+                     "개발된 적이 거의 없는(유기합성 시약/부산물에 가까운) 계열로 보이며, 안전성 "
+                     "근거도 위험성 근거도 뚜렷하지 않아 새 치환 전략을 만들 화학적 정당성이 "
+                     "부족함. 이 서브클래스는 stuck이 정상적 결과로 남을 수 있음(범위 밖으로 "
+                     "명시, 억지 치환 candidate 추가는 지양)."},
     {"rule": "quaternary_nitrogen_1", "type": "위험=메커니즘_참고_검증완료",
      "description": "PRALIDOXIME, PRALIDOXIME CHLORIDE 둘 다 ChEMBL 조회로 승인·비철수 확인됨"
                      "(max_phase=4.0, withdrawn_flag=False), problem_smarts 실제 매치 확인"
