@@ -1,3 +1,4 @@
+
 import json
 import time
 from src.tools.replacement_library import get_replacement_candidates
@@ -99,6 +100,23 @@ def _try_compute_score(rule_name, smiles_before, smiles_after, docking_evidence=
             sascorer_module=_injected_sascorer["module"],
             precedent_docking_delta=precedent_docking_delta,
         )
+    except Exception:
+        return None
+
+def _try_get_activity_risk(rule_name, smiles_before, smiles_after):
+    """활성 보존 위험도 평가. sascorer가 등록 안 돼 있으면 조용히 None
+    (activity_metrics가 sascorer_module을 필수로 요구하므로)."""
+    try:
+        if _injected_sascorer["module"] is None:
+            return None
+        from src.tools.activity_metrics import (compute_activity_preservation_metrics,
+                                                   classify_activity_risk_v3)
+        metrics = compute_activity_preservation_metrics(
+            smiles_before, smiles_after, _injected_sascorer["module"]
+        )
+        if metrics is None:
+            return None
+        return classify_activity_risk_v3(metrics)
     except Exception:
         return None
 
@@ -209,6 +227,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
     for round_num in range(1, max_rounds + 1):
         docking_evidence = _try_get_docking_evidence(rule_name, smiles_before, smiles_after)
         score_result = _try_compute_score(rule_name, smiles_before, smiles_after, docking_evidence)
+        activity_risk = _try_get_activity_risk(rule_name, smiles_before, smiles_after)
         critic_prompt = f"""당신은 신약개발 화학 검토자(critic)입니다. 동료 화학자가 아래
 치환을 제안했습니다.
 
@@ -219,6 +238,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
 제안자의 근거: {proposer_argument}
 {f"실측 도킹 결합력 변화: {docking_evidence['target']} 표적, {docking_evidence['score_original']:.2f} → {docking_evidence['score_fixed']:.2f} kcal/mol (delta {docking_evidence['delta']:+.2f}). 이 정량 데이터를 판단에 반영하세요." if docking_evidence else ""}
 {f"종합 점수: {score_result['composite_score']:.2f} (세부: {score_result['component_scores']}). 이것도 판단에 참고하세요." if score_result and score_result.get('composite_score') is not None else ""}
+{f"활성 보존 위험도 평가: {activity_risk['verdict']} (세부: {'; '.join(activity_risk['details'])})" if activity_risk else ""}
 
 이 치환에 동의하는지 비판적으로 검토하세요. 동의하지 않는다면 구체적으로
 어떤 점이 문제인지 명시하세요(새로운 독성 구조 생성 가능성, 근거의
