@@ -1,4 +1,3 @@
-
 import json
 import time
 from src.tools.replacement_library import get_replacement_candidates
@@ -236,7 +235,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
 해결하려던 문제: {rule_name}
 제안된 치환: {candidate_name}
 제안자의 근거: {proposer_argument}
-{f"실측 도킹 결합력 변화: {docking_evidence['target']} 표적, {docking_evidence['score_original']:.2f} → {docking_evidence['score_fixed']:.2f} kcal/mol (delta {docking_evidence['delta']:+.2f}). 이 정량 데이터를 판단에 반영하세요." if docking_evidence else ""}
+{f"실측 도킹 결합력 변화: {docking_evidence['target']} 표적, {docking_evidence['score_original']:.2f} → {docking_evidence['score_fixed']:.2f} kcal/mol (delta {docking_evidence['delta']:+.2f}). 이 정량 데이터를 판단에 반영하세요.{' [주의: ' + docking_evidence['caveat'] + ']' if docking_evidence and docking_evidence.get('caveat') else ''}" if docking_evidence else ""}
 {f"종합 점수: {score_result['composite_score']:.2f} (세부: {score_result['component_scores']}). 이것도 판단에 참고하세요." if score_result and score_result.get('composite_score') is not None else ""}
 {f"활성 보존 위험도 평가: {activity_risk['verdict']} (세부: {'; '.join(activity_risk['details'])})" if activity_risk else ""}
 

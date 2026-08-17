@@ -17,21 +17,29 @@ DOCKING_TARGETS = {
         "target_name": "COMT", "pdb_id": "1VID",
         "ligand_code": "DNC", "keep_hetatm_codes": ["MG", "SAM"],
         "box_size": [20, 20, 20],
+        "caveat": None,  # 매치된 분자가 실제로 카테콜 골격을 가지므로 표적 특이성 근거 있음
     },
     "Michael_acceptor_1": {
         "target_name": "EGFR", "pdb_id": "6JX4",
         "ligand_code": "YY3", "keep_hetatm_codes": [],
         "box_size": [20, 20, 20],
+        "caveat": ("EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. "
+                   "이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 "
+                   "'이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, "
+                   "warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 "
+                   "가진다는 별도 증거가 있을 때만 내리세요."),
     },
     "hydroquinone": {
         "target_name": "NQO1", "pdb_id": "1DXO",
         "ligand_code": "DQN", "keep_hetatm_codes": ["FAD"],
         "box_size": [20, 20, 20],
+        "caveat": None,
     },
     "quinone_A(370)": {
         "target_name": "NQO1", "pdb_id": "1DXO",
         "ligand_code": "DQN", "keep_hetatm_codes": ["FAD"],
         "box_size": [20, 20, 20],
+        "caveat": None,
     },
 }
 
@@ -167,7 +175,8 @@ def auto_dock_precedent(rule_name, original_smiles, fixed_smiles, use_cache=True
         "target": target_info["target_name"], "pdb_id": target_info["pdb_id"], "rule": rule_name,
         "score_original": scores["original"], "score_fixed": scores["fixed"],
         "delta": (scores["fixed"] - scores["original"])
-                 if scores["original"] is not None and scores["fixed"] is not None else None
+                 if scores["original"] is not None and scores["fixed"] is not None else None,
+        "caveat": target_info.get("caveat"),
     }
 
     if use_cache:

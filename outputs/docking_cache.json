@@ -7,14 +7,6 @@
     "score_fixed": -4.316,
     "delta": -0.18799999999999972
   },
-  "Michael_acceptor_1|COC1=CC(=C(C=C1NC2=NC=CC(=N2)C3=CN(C4=CC=CC=C43)C)OC)NC(=O)C=CCN(C)C|COC1=CC(=C(C=C1NC2=NC=CC(=N2)C3=CN(C4=CC=CC=C43)C)OC)NC(=O)CCCN(C)C": {
-    "target": "EGFR",
-    "pdb_id": "6JX4",
-    "rule": "Michael_acceptor_1",
-    "score_original": -7.624,
-    "score_fixed": -7.382,
-    "delta": 0.242
-  },
   "catechol|NCCc1ccc(O)c(O)c1|COc1ccc(CCN)cc1O": {
     "target": "COMT",
     "pdb_id": "1VID",
@@ -22,5 +14,32 @@
     "score_original": -5.177,
     "score_fixed": -5.187,
     "delta": -0.010000000000000675
+  },
+  "Michael_acceptor_1|C=C(CC(=O)O)C(=O)O|CC(CC(=O)O)C(=O)O": {
+    "target": "EGFR",
+    "pdb_id": "6JX4",
+    "rule": "Michael_acceptor_1",
+    "score_original": -3.75,
+    "score_fixed": -3.872,
+    "delta": -0.12199999999999989,
+    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
+  },
+  "Michael_acceptor_1|O=CC=C(c1ccccc1)c1ccccc1|O=CCC(c1ccccc1)c1ccccc1": {
+    "target": "EGFR",
+    "pdb_id": "6JX4",
+    "rule": "Michael_acceptor_1",
+    "score_original": -6.135,
+    "score_fixed": -5.939,
+    "delta": 0.19599999999999973,
+    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
+  },
+  "Michael_acceptor_1|CC(=O)/C=C/C=C1/C2CCC(C2)C1(C)C|CC(=O)CC/C=C1/C2CCC(C2)C1(C)C": {
+    "target": "EGFR",
+    "pdb_id": "6JX4",
+    "rule": "Michael_acceptor_1",
+    "score_original": -5.972,
+    "score_fixed": -5.876,
+    "delta": 0.09600000000000009,
+    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
   }
 }
