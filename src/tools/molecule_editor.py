@@ -221,7 +221,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
         failed_attempts = []
 
         for candidate_rule in ordered_rules:
-            debate_log_for_step = None
+            all_debate_logs_for_step = []
             if llm_client is not None:
                 candidate_decision = ask_llm_which_candidate_to_use(llm_client, llm_model, current, candidate_rule, client_type=llm_client_type)
                 preferred_candidate_idx = candidate_decision['candidate_idx']
@@ -276,11 +276,19 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                             client_type=llm_client_type, max_rounds=debate_max_rounds,
                         )
                         if debate_result['final_verdict'] == 'rejected':
+                            all_debate_logs_for_step.append({
+                                "rule": candidate_rule, "candidate_idx": try_idx,
+                                "verdict": debate_result['final_verdict'], "rounds": debate_result['rounds'],
+                            })
                             failed_attempts.append(f"{candidate_rule}[idx={try_idx}](토의 결과 반려)")
                             if use_failure_memory:
                                 _FAILURE_MEMORY[memory_key] = True
                             continue
                         elif debate_result['final_verdict'] == 'escalate':
+                            all_debate_logs_for_step.append({
+                                "rule": candidate_rule, "candidate_idx": try_idx,
+                                "verdict": debate_result['final_verdict'], "rounds": debate_result['rounds'],
+                            })
                             flagged_for_review.add(candidate_rule)
                             if candidate_rule not in skipped_rules:
                                 skipped_rules.append(candidate_rule)
@@ -291,8 +299,15 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                                 "atom_indices": next((p['atom_indices'] for p in problems if p['rule_name'] == candidate_rule), []),
                             })
                             failed_attempts.append(f"{candidate_rule}[idx={try_idx}](토의 합의 실패, escalate)")
+                            all_debate_logs_for_step.append({
+                                "rule": candidate_rule, "candidate_idx": try_idx,
+                                "verdict": debate_result['final_verdict'], "rounds": debate_result['rounds'],
+                            })
                             continue
-                        debate_log_for_step = debate_result['rounds']
+                        all_debate_logs_for_step.append({
+                            "rule": candidate_rule, "candidate_idx": try_idx,
+                            "verdict": debate_result['final_verdict'], "rounds": debate_result['rounds'],
+                        })
                         debate_suffix = " (토의 승인)"
 
                     rule_fixed = attempt
@@ -338,7 +353,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
             "problem_reason": problem_reason,
             "candidate_used": fixed['candidate_used'],
             "candidate_reason": candidate_reason,
-            "debate_rounds": debate_log_for_step,
+            "debate_rounds": all_debate_logs_for_step,
         })
 
     return {"status": "max_iterations_reached", "final_smiles": current, "history": history,

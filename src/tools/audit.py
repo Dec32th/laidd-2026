@@ -26,18 +26,20 @@ def generate_audit_report(result, original_smiles=None):
             lines.append(f"  고친 규칙: {h['fixed_rule']} (판단 근거: {h.get('problem_reason', '')})")
             lines.append(f"  적용된 치환: {h.get('candidate_used', '')}")
             lines.append(f"  candidate 선택 근거: {h.get('candidate_reason', '')}")
-            debate_rounds = h.get('debate_rounds')
-            if debate_rounds:
-                lines.append("  --- 토의(debate) 왕복 기록 ---")
-                for r in debate_rounds:
-                    role = r.get('role')
-                    round_num = r.get('round')
-                    text = r.get('text', {})
-                    if role == 'critic':
-                        lines.append(f"    [R{round_num} critic] {text.get('verdict')}: {text.get('reason', '')}")
-                    else:
-                        lines.append(f"    [R{round_num} proposer] {text.get('stance')}: {text.get('argument', '')}")
-
+            debate_attempts = h.get('debate_rounds')
+            if debate_attempts:
+                lines.append("  --- 토의(debate) 시도 기록 ---")
+                for attempt in debate_attempts:
+                    lines.append(f"    ▸ {attempt['rule']}[idx={attempt['candidate_idx']}] 최종: {attempt['verdict']}")
+                    for r in attempt['rounds']:
+                        role = r.get('role')
+                        round_num = r.get('round')
+                        text = r.get('text', {})
+                        if role == 'critic':
+                            lines.append(f"      [R{round_num} critic] {text.get('verdict')}: {text.get('reason', '')}")
+                        else:
+                            lines.append(f"      [R{round_num} proposer] {text.get('stance')}: {text.get('argument', '')}")
+    
     if result.get('skipped_rules'):
         lines.append("\n--- 처리 못 하고 넘긴 규칙 (라이브러리 미등록 또는 사람 검토 필요) ---")
         for detail in result.get('skipped_details', []):
