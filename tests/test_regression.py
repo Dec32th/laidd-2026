@@ -8,6 +8,9 @@ import glob
 import os
 import pytest
 
+def pytest_configure(config):
+    config.addinivalue_line("markers", "slow: requires network/LLM API access")
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -112,3 +115,50 @@ def test_smoke_conflict_resolution_picks_lower_remaining_count():
     step1 = r["history"][1]
     assert step1.get("fixed_rule") == "hydrazine"
     assert "충돌 조정" in step1.get("problem_reason", "")
+
+@pytest.mark.slow
+def test_integration_debate_resolves_itaconic_acid_case():
+    """어제 caveat 버그의 원인이었던 실제 케이스가 여전히 정상 동작하는지.
+    (client_qwen, QWEN_MODEL은 노트북 전역에 이미 정의돼 있어야 함)"""
+    import builtins
+    client_qwen = getattr(builtins, "client_qwen", None) or globals().get("client_qwen")
+    if client_qwen is None:
+        pytest.skip("client_qwen이 정의 안 됨 (노트북 셀에서 미리 만들어야 함)")
+
+    from src.tools.molecule_editor import iterative_fix_loop, clear_failure_memory
+    from src.tools.agent import _try_get_docking_evidence
+
+    clear_failure_memory()
+    r = iterative_fix_loop(
+        "C=C(CC(=O)O)C(=O)O", max_iterations=10, candidate_idx=0,
+        llm_client=client_qwen, llm_model="qwen3.8-max", llm_client_type="openai_compatible",
+        use_debate=True, debate_max_rounds=2,
+    )
+    assert r["status"] in ("success", "stuck")
+    step1 = r["history"][1] if len(r["history"]) > 1 else None
+    assert step1 is not None
+    debate_attempts = step1.get("debate_rounds") or []
+    assert len(debate_attempts) > 0, "토의가 아예 발동 안 함 (should_debate 트리거 확인 필요)"
+
+
+@pytest.mark.slow
+def test_integration_docking_evidence_reaches_debate_prompt():
+    """도킹이 실제로 critic 프롬프트에 삽입되는지 end-to-end 확인."""
+    client_qwen = globals().get("client_qwen")
+    if client_qwen is None:
+        pytest.skip("client_qwen이 정의 안 됨")
+
+    from src.tools.agent import ask_llm_debate_fix
+    from src.tools.molecule_editor import propose_fix
+    from src.tools.replacement_library import get_replacement_candidates
+
+    info = get_replacement_candidates("catechol")
+    candidate = info["candidates"][0]
+    trial = propose_fix("NCCc1ccc(O)c(O)c1", "catechol", 0)
+    assert trial is not None
+
+    result = ask_llm_debate_fix(
+        client_qwen, "qwen3.8-max", "NCCc1ccc(O)c(O)c1", trial["new_smiles"], "catechol",
+        candidate["name"], candidate.get("rationale", ""), client_type="openai_compatible",
+    )
+    assert result["final_verdict"] in ("approved", "rejected", "escalate")

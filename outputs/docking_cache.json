@@ -41,5 +41,14 @@
     "score_fixed": -5.876,
     "delta": 0.09600000000000009,
     "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
+  },
+  "hydroquinone|O=C1c2c(O)ccc(O)c2C(=O)c2c(NCCNCCO)ccc(NCCNCCO)c21|COc1ccc(O)c2c1C(=O)c1c(NCCNCCO)ccc(NCCNCCO)c1C2=O": {
+    "target": "NQO1",
+    "pdb_id": "1DXO",
+    "rule": "hydroquinone",
+    "score_original": -4.996,
+    "score_fixed": -4.471,
+    "delta": 0.5250000000000004,
+    "caveat": null
   }
 }
