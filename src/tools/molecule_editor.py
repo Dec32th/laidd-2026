@@ -261,6 +261,23 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                         _FAILURE_MEMORY[memory_key] = True
                     continue
 
+                # 파괴적 편집 가드: 무거운 원자 50% 이상이 사라지면 "고침"이
+                # 아니라 분자 자체를 파괴한 것으로 간주(remove_substituent류
+                # 편집이 비고리 분자의 대부분을 통째로 잘라내는 사고 방지)
+                mol_current_check = Chem.MolFromSmiles(current)
+                mol_new_check = Chem.MolFromSmiles(attempt['new_smiles'])
+                if mol_current_check and mol_new_check:
+                    atoms_before = mol_current_check.GetNumHeavyAtoms()
+                    atoms_after = mol_new_check.GetNumHeavyAtoms()
+                    loss_ratio = 1 - (atoms_after / atoms_before) if atoms_before > 0 else 0
+                    if loss_ratio >= 0.5:
+                        failed_attempts.append(
+                            f"{candidate_rule}[idx={try_idx}](파괴적 편집 거부: 원자 {loss_ratio:.0%} 손실)"
+                        )
+                        if use_failure_memory:
+                            _FAILURE_MEMORY[memory_key] = True
+                        continue
+
                 # valid해도 실제로 이 규칙이 재진단에서 사라졌는지 확인
                 recheck = detect_toxicophores(attempt['new_smiles'])
                 still_flagged = any(p['rule_name'] == candidate_rule for p in recheck)

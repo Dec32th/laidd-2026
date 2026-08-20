@@ -162,3 +162,28 @@ def test_integration_docking_evidence_reaches_debate_prompt():
         candidate["name"], candidate.get("rationale", ""), client_type="openai_compatible",
     )
     assert result["final_verdict"] in ("approved", "rejected", "escalate")
+
+
+def test_destructive_edit_guard_present():
+    with open(os.path.join(REPO_ROOT, "src/tools/molecule_editor.py")) as f:
+        content = f.read()
+    assert "파괴적 편집" in content
+    assert "loss_ratio" in content
+
+
+def test_destructive_edit_guard_rejects_thiophosphate_case():
+    """실제로 파괴적 편집(원자 대부분 삭제)을 막는지 회귀 검증."""
+    from src.tools.molecule_editor import iterative_fix_loop, clear_failure_memory
+    from rdkit import Chem
+
+    smi = "CCOP(=S)(OCC)SCSC(C)(C)C"
+    clear_failure_memory()
+    r = iterative_fix_loop(smi, max_iterations=10, candidate_idx=0)
+
+    mol_before = Chem.MolFromSmiles(smi)
+    mol_after = Chem.MolFromSmiles(r["final_smiles"]) if r.get("final_smiles") else None
+    if mol_before and mol_after:
+        atoms_before = mol_before.GetNumHeavyAtoms()
+        atoms_after = mol_after.GetNumHeavyAtoms()
+        loss_ratio = 1 - (atoms_after / atoms_before) if atoms_before > 0 else 0
+        assert loss_ratio < 0.5, f"파괴적 편집 가드가 뚫림: {loss_ratio:.0%} 원자 손실"
