@@ -50,5 +50,59 @@
     "score_fixed": -4.471,
     "delta": 0.5250000000000004,
     "caveat": null
+  },
+  "hydroquinone|CCCC(=O)Nc1ccc(O)c(C(C)=O)c1|CCCC(=O)Nc1ccc(OC)c(C(C)=O)c1": {
+    "target": "NQO1",
+    "pdb_id": "1DXO",
+    "rule": "hydroquinone",
+    "score_original": -4.842,
+    "score_fixed": -4.597,
+    "delta": 0.24499999999999922,
+    "caveat": null
+  },
+  "Michael_acceptor_1|CC(=CC(=O)O)CCCC(C)C|CC(C)CCCC(C)CC(=O)O": {
+    "target": "EGFR",
+    "pdb_id": "6JX4",
+    "rule": "Michael_acceptor_1",
+    "score_original": -4.689,
+    "score_fixed": -4.493,
+    "delta": 0.19599999999999973,
+    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
+  },
+  "hydroquinone|NS(=O)(=O)c1ccc(O)c2c1C(=O)c1c(Nc3ccc(CCO)cc3)ccc(O)c1C2=O|COc1ccc(Nc2ccc(CCO)cc2)c2c1C(=O)c1c(O)ccc(S(N)(=O)=O)c1C2=O": {
+    "target": "NQO1",
+    "pdb_id": "1DXO",
+    "rule": "hydroquinone",
+    "score_original": null,
+    "score_fixed": null,
+    "delta": null,
+    "caveat": null
+  },
+  "hydroquinone|Cc1c(C)c(O)c(CCCCC#CCCCC#CCO)c(C)c1O|COc1c(C)c(C)c(O)c(C)c1CCCCC#CCCCC#CCO": {
+    "target": "NQO1",
+    "pdb_id": "1DXO",
+    "rule": "hydroquinone",
+    "score_original": null,
+    "score_fixed": null,
+    "delta": null,
+    "caveat": null
+  },
+  "hydroquinone|Cc1c(C)c(O)c(C(C)CCC(C)C#CCCC(C)C#CCO)c(C)c1O|COc1c(C)c(C)c(O)c(C)c1C(C)CCC(C)C#CCCC(C)C#CCO": {
+    "target": "NQO1",
+    "pdb_id": "1DXO",
+    "rule": "hydroquinone",
+    "score_original": null,
+    "score_fixed": null,
+    "delta": null,
+    "caveat": null
+  },
+  "hydroquinone|Cc1c(C)c(O)c(C(C)CCC(C)CCCCC(C)C#CCO)c(C)c1O|COc1c(C)c(C)c(O)c(C)c1C(C)CCC(C)CCCCC(C)C#CCO": {
+    "target": "NQO1",
+    "pdb_id": "1DXO",
+    "rule": "hydroquinone",
+    "score_original": null,
+    "score_fixed": -3.849,
+    "delta": null,
+    "caveat": null
   }
 }
