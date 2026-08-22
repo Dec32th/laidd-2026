@@ -23,11 +23,16 @@ DOCKING_TARGETS = {
         "target_name": "EGFR", "pdb_id": "6JX4",
         "ligand_code": "YY3", "keep_hetatm_codes": [],
         "box_size": [20, 20, 20],
-        "caveat": ("EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. "
-                   "이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 "
-                   "'이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, "
-                   "warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 "
-                   "가진다는 별도 증거가 있을 때만 내리세요."),
+        "caveat": ("[방법론적 한계] 이 도킹은 AutoDock Vina 표준 도킹으로, 공유결합 형성을 전혀 "
+                   "모델링하지 못합니다 — 워헤드가 실제 반응 부위(예: 시스테인 잔기)와 형성하는 "
+                   "공유결합의 결합력은 반영되지 않고, 오직 비공유 상호작용만 점수화됩니다. "
+                   "따라서 warhead 제거 전후 도킹 점수 차이가 작다는 것이(예: <1 kcal/mol) "
+                   "'약효 손실이 없다'는 증거가 될 수 없습니다 — 애초에 이 도킹 방법으로는 "
+                   "공유결합 억제 메커니즘 자체를 평가할 수 없기 때문입니다. 추가로, EGFR은 "
+                   "Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적이라, 이 분자가 "
+                   "실제로 EGFR을 겨냥한다는 근거도 없습니다. 이 도킹 수치는 참고 이상의 근거로 "
+                   "쓰지 말고, warhead 제거 여부는 이 분자가 실제 공유결합 표적을 가진다는 "
+                   "별도 증거(precedent, 알려진 반응 부위 등)를 기준으로 판단하세요."),
     },
     "hydroquinone": {
         "target_name": "NQO1", "pdb_id": "1DXO",
@@ -150,7 +155,9 @@ def auto_dock_precedent(rule_name, original_smiles, fixed_smiles, use_cache=True
     cache = _load_cache() if use_cache else {}
     cache_key = f"{rule_name}|{original_smiles}|{fixed_smiles}"
     if use_cache and cache_key in cache:
-        return cache[cache_key]
+        cached_result = dict(cache[cache_key])
+        cached_result["caveat"] = target_info.get("caveat")  # caveat은 캐시 무시, 항상 최신 반영
+        return cached_result
 
     if not os.path.exists(VINA_BIN):
         return {"error": f"vina_bin이 {VINA_BIN}에 없음. 다운로드 먼저 진행하세요."}
