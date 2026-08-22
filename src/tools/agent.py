@@ -289,3 +289,29 @@ def should_debate(candidate_rationale):
     rationale에 '[참고]'가 있으면 실제 승인약물 사례와 겹칠 수 있다는
     뜻이므로, 단순 채택 대신 토의로 한 번 더 검토해야 함."""
     return '[참고]' in (candidate_rationale or '')
+
+def ask_llm_debate_fix_consistent(client, model_name, smiles_before, smiles_after, rule_name,
+                                    candidate_name, candidate_rationale, client_type="gemini",
+                                    max_rounds=2, n_repeats=3):
+    """ask_llm_debate_fix를 n_repeats번 반복해서 다수결로 최종 판정.
+    LLM 토의의 확률적 특성(같은 입력에도 매번 다른 판정)을 완화하기 위함.
+    반환: {"final_verdict": ..., "vote_counts": {...}, "all_results": [...]}
+    """
+    from collections import Counter
+    results = []
+    for _ in range(n_repeats):
+        r = ask_llm_debate_fix(
+            client, model_name, smiles_before, smiles_after, rule_name,
+            candidate_name, candidate_rationale, client_type=client_type, max_rounds=max_rounds,
+        )
+        results.append(r)
+
+    votes = Counter(r['final_verdict'] for r in results)
+    majority_verdict, majority_count = votes.most_common(1)[0]
+
+    return {
+        "final_verdict": majority_verdict,
+        "vote_counts": dict(votes),
+        "consensus_strength": f"{majority_count}/{n_repeats}",
+        "all_results": results,
+    }
