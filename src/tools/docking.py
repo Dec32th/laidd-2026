@@ -177,6 +177,7 @@ def auto_dock_precedent(rule_name, original_smiles, fixed_smiles, use_cache=True
             return {"error": f"{label} 리간드 준비 실패"}
         scores[label] = run_docking_cli(lig_pdbqt, receptor_pdbqt, f"targets/{rule_name}_{label}",
                                           box_center, target_info["box_size"])
+        
 
     result = {
         "target": target_info["target_name"], "pdb_id": target_info["pdb_id"], "rule": rule_name,

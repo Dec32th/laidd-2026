@@ -15,33 +15,6 @@
     "score_fixed": -5.187,
     "delta": -0.010000000000000675
   },
-  "Michael_acceptor_1|C=C(CC(=O)O)C(=O)O|CC(CC(=O)O)C(=O)O": {
-    "target": "EGFR",
-    "pdb_id": "6JX4",
-    "rule": "Michael_acceptor_1",
-    "score_original": -3.75,
-    "score_fixed": -3.872,
-    "delta": -0.12199999999999989,
-    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
-  },
-  "Michael_acceptor_1|O=CC=C(c1ccccc1)c1ccccc1|O=CCC(c1ccccc1)c1ccccc1": {
-    "target": "EGFR",
-    "pdb_id": "6JX4",
-    "rule": "Michael_acceptor_1",
-    "score_original": -6.135,
-    "score_fixed": -5.939,
-    "delta": 0.19599999999999973,
-    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
-  },
-  "Michael_acceptor_1|CC(=O)/C=C/C=C1/C2CCC(C2)C1(C)C|CC(=O)CC/C=C1/C2CCC(C2)C1(C)C": {
-    "target": "EGFR",
-    "pdb_id": "6JX4",
-    "rule": "Michael_acceptor_1",
-    "score_original": -5.972,
-    "score_fixed": -5.876,
-    "delta": 0.09600000000000009,
-    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
-  },
   "hydroquinone|O=C1c2c(O)ccc(O)c2C(=O)c2c(NCCNCCO)ccc(NCCNCCO)c21|COc1ccc(O)c2c1C(=O)c1c(NCCNCCO)ccc(NCCNCCO)c1C2=O": {
     "target": "NQO1",
     "pdb_id": "1DXO",
@@ -59,15 +32,6 @@
     "score_fixed": -4.597,
     "delta": 0.24499999999999922,
     "caveat": null
-  },
-  "Michael_acceptor_1|CC(=CC(=O)O)CCCC(C)C|CC(C)CCCC(C)CC(=O)O": {
-    "target": "EGFR",
-    "pdb_id": "6JX4",
-    "rule": "Michael_acceptor_1",
-    "score_original": -4.689,
-    "score_fixed": -4.493,
-    "delta": 0.19599999999999973,
-    "caveat": "EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적입니다. 이 특정 분자가 실제로 EGFR을 겨냥한다는 근거는 없으므로, 이 도킹 결과를 '이 분자는 EGFR 공유결합 억제제다'라는 근거로 쓰지 마세요. 참고로만 활용하고, warhead 제거가 약효를 없앤다는 결론은 이 분자가 실제로 공유결합 표적을 가진다는 별도 증거가 있을 때만 내리세요."
   },
   "hydroquinone|NS(=O)(=O)c1ccc(O)c2c1C(=O)c1c(Nc3ccc(CCO)cc3)ccc(O)c1C2=O|COc1ccc(Nc2ccc(CCO)cc2)c2c1C(=O)c1c(O)ccc(S(N)(=O)=O)c1C2=O": {
     "target": "NQO1",
@@ -104,5 +68,14 @@
     "score_fixed": -3.849,
     "delta": null,
     "caveat": null
+  },
+  "Michael_acceptor_1|C=C(CC(=O)O)C(=O)O|CC(CC(=O)O)C(=O)O": {
+    "target": "EGFR",
+    "pdb_id": "6JX4",
+    "rule": "Michael_acceptor_1",
+    "score_original": -3.782,
+    "score_fixed": -3.865,
+    "delta": -0.08300000000000018,
+    "caveat": "[방법론적 한계] 이 도킹은 AutoDock Vina 표준 도킹으로, 공유결합 형성을 전혀 모델링하지 못합니다 — 워헤드가 실제 반응 부위(예: 시스테인 잔기)와 형성하는 공유결합의 결합력은 반영되지 않고, 오직 비공유 상호작용만 점수화됩니다. 따라서 warhead 제거 전후 도킹 점수 차이가 작다는 것이(예: <1 kcal/mol) '약효 손실이 없다'는 증거가 될 수 없습니다 — 애초에 이 도킹 방법으로는 공유결합 억제 메커니즘 자체를 평가할 수 없기 때문입니다. 추가로, EGFR은 Michael_acceptor_1 규칙 자체와 특이적 연관이 없는 벤치마크 표적이라, 이 분자가 실제로 EGFR을 겨냥한다는 근거도 없습니다. 이 도킹 수치는 참고 이상의 근거로 쓰지 말고, warhead 제거 여부는 이 분자가 실제 공유결합 표적을 가진다는 별도 증거(precedent, 알려진 반응 부위 등)를 기준으로 판단하세요."
   }
 }
