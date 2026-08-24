@@ -77,6 +77,14 @@ def _try_get_docking_evidence(rule_name, smiles_before, smiles_after):
     except Exception:
         return None
 
+def _try_get_warhead_reference(rule_name):
+    """워헤드 반응성 참고표가 있으면 조회, 없으면 조용히 None."""
+    try:
+        from src.tools.docking import get_warhead_reference
+        return get_warhead_reference(rule_name)
+    except Exception:
+        return None
+
 def _try_compute_score(rule_name, smiles_before, smiles_after, docking_evidence=None):
     """등록된 sascorer/tox_predictor/도킹 결과를 모아 종합 점수 계산.
     일부만 등록돼 있어도 compute_multi_objective_score가 나머지로
@@ -227,6 +235,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
         docking_evidence = _try_get_docking_evidence(rule_name, smiles_before, smiles_after)
         score_result = _try_compute_score(rule_name, smiles_before, smiles_after, docking_evidence)
         activity_risk = _try_get_activity_risk(rule_name, smiles_before, smiles_after)
+        warhead_ref = _try_get_warhead_reference(rule_name)
         critic_prompt = f"""당신은 신약개발 화학 검토자(critic)입니다. 동료 화학자가 아래
 치환을 제안했습니다.
 
@@ -238,6 +247,7 @@ def ask_llm_debate_fix(client, model_name, smiles_before, smiles_after, rule_nam
 {f"실측 도킹 결합력 변화: {docking_evidence['target']} 표적, {docking_evidence['score_original']:.2f} → {docking_evidence['score_fixed']:.2f} kcal/mol (delta {docking_evidence['delta']:+.2f}). 이 정량 데이터를 판단에 반영하세요.{' [주의: ' + docking_evidence['caveat'] + ']' if docking_evidence and docking_evidence.get('caveat') else ''}" if docking_evidence else ""}
 {f"종합 점수: {score_result['composite_score']:.2f} (세부: {score_result['component_scores']}). 이것도 판단에 참고하세요." if score_result and score_result.get('composite_score') is not None else ""}
 {f"활성 보존 위험도 평가: {activity_risk['verdict']} (세부: {'; '.join(activity_risk['details'])})" if activity_risk else ""}
+{f"워헤드 반응성 참고: {warhead_ref['reactivity_note']} 실무 지침: {warhead_ref['practical_guidance']}" if warhead_ref else ""}
 
 이 치환에 동의하는지 비판적으로 검토하세요. 동의하지 않는다면 구체적으로
 어떤 점이 문제인지 명시하세요(새로운 독성 구조 생성 가능성, 근거의

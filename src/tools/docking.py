@@ -192,3 +192,32 @@ def auto_dock_precedent(rule_name, original_smiles, fixed_smiles, use_cache=True
         _save_cache(cache)
 
     return result
+
+# Michael acceptor류 반응성/선택성에 대한 문헌 기반 참고표.
+# 좌표 계산 없이, 알려진 화학 지식을 critic 판단에 참고자료로 제공하기 위함
+# (노트북 54: 거리 기반 기하학적 근사는 원자매핑 신뢰성 문제로 폐기, 저비용 대안).
+WARHEAD_REACTIVITY_REFERENCE = {
+    "Michael_acceptor_1": {
+        "warhead_class": "α,β-불포화 카르보닐 (Michael acceptor)",
+        "reactivity_note": (
+            "이 워헤드 계열의 반응성은 구조에 따라 크게 갈립니다. (1) 아크릴아마이드형 "
+            "(예: 오시메르티닙, 아파티닙, 이브루티닙의 warhead)은 특정 시스테인(EGFR Cys797, "
+            "BTK Cys481 등)과 선택적으로 반응하도록 설계된 잘 확립된 공유결합 억제제 warhead입니다. "
+            "(2) 반면 이타콘산(itaconate) 같은 단순 α,β-불포화 카르복실산도 '반응성이 없다'고 "
+            "단정할 수 없습니다 — 이타콘산은 실제로 생체 내에서 KEAP1 Cys151, GAPDH Cys22 등과 "
+            "Michael 부가반응으로 공유결합하는 내인성 항염증 대사물질로 잘 알려져 있습니다 "
+            "(Mills et al., Nature 2018). 즉 '단순해 보이는 Michael acceptor니까 안전하게 "
+            "제거해도 된다'는 가정 자체가 항상 성립하지 않습니다."
+        ),
+        "practical_guidance": (
+            "warhead 제거를 판단할 때는, 도킹 델타가 작다는 것보다 (a) 이 분자가 알려진 "
+            "약물/대사물질과 구조적으로 유사한지, (b) 선례 라이브러리에 해당 사례가 있는지를 "
+            "우선 근거로 삼으세요. 확실한 근거가 없으면 사람 검토로 넘기는 것이 안전합니다."
+        ),
+    },
+}
+
+
+def get_warhead_reference(rule_name):
+    """규칙 이름으로 반응성 참고표 항목을 조회. 없으면 None."""
+    return WARHEAD_REACTIVITY_REFERENCE.get(rule_name)
