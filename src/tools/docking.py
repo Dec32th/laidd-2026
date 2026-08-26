@@ -221,3 +221,36 @@ WARHEAD_REACTIVITY_REFERENCE = {
 def get_warhead_reference(rule_name):
     """규칙 이름으로 반응성 참고표 항목을 조회. 없으면 None."""
     return WARHEAD_REACTIVITY_REFERENCE.get(rule_name)
+
+WARHEAD_REACTIVITY_REFERENCE["alkyl_halide"] = {
+    "warhead_class": "알킬 할라이드 (친전자성 알킬화제)",
+    "reactivity_note": (
+        "알킬 할라이드는 SN2 메커니즘으로 시스테인 등 친핵체와 공유결합을 형성하는 "
+        "잘 알려진 친전자성 워헤드입니다. 클로로아세트아미드(chloroacetamide) 계열은 "
+        "표적 공유결합 억제제(targeted covalent inhibitor) 설계에 흔히 쓰이는 반응기이며, "
+        "질소 머스타드(chlorambucil, cyclophosphamide 등)는 이 반응성을 이용해 DNA를 "
+        "알킬화하는 항암제로 설계된 사례입니다. 즉 반응성 자체가 결함이 아니라 의도된 "
+        "약효 메커니즘인 경우가 있습니다."
+    ),
+    "practical_guidance": (
+        "할라이드를 단순 제거하기 전에, 이 분자가 알려진 알킬화제 약물/항암제 계열과 "
+        "구조적으로 유사한지 먼저 확인하세요. 유사성이 있으면 반응성 제거가 약효 상실로 "
+        "이어질 수 있으므로 사람 검토를 권장합니다."
+    ),
+}
+
+WARHEAD_REACTIVITY_REFERENCE["disulphide"] = {
+    "warhead_class": "이황화결합 (다이설파이드, 티올-다이설파이드 교환반응)",
+    "reactivity_note": (
+        "이황화결합은 티올-다이설파이드 교환반응을 통해 단백질 시스테인과 동적 공유결합을 "
+        "형성할 수 있습니다. 오라노핀(auranofin, 항류마티스제)은 티오레독신 환원효소와의 "
+        "이 교환반응을 이용해 작용하는 승인 약물이며, 디설피람(disulfiram)도 알데하이드"
+        "탈수소효소와 유사한 반응성으로 작용합니다. 즉 이 결합의 반응성이 오히려 약효의 "
+        "핵심 메커니즘인 경우가 있습니다."
+    ),
+    "practical_guidance": (
+        "이황화결합을 단순 절단하기 전에, 이 분자가 오라노핀/디설피람류처럼 그 반응성 "
+        "자체를 이용하는 약물 계열과 유사한지 확인하세요. 확실한 근거가 없으면 사람 검토로 "
+        "넘기는 것이 안전합니다."
+    ),
+}
