@@ -140,10 +140,10 @@ def _candidate_order_for_rule(rule_name: str, preferred_idx: int):
     return order
 
 
-def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int = 0,
+def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
                         llm_client=None, llm_model=None, llm_client_type="gemini",
-                        use_failure_memory: bool = True, use_debate: bool = False,
-                        debate_max_rounds: int = 2):
+                        use_failure_memory=True, use_debate=False, debate_max_rounds=2,
+                        destructive_edit_threshold=0.5):
     """진단->치환->재평가를 반복.
     핵심: candidate가 '화학적으로 유효(is_valid)'해도 대상 규칙이 실제로
     해소됐는지 재진단(detect_toxicophores)까지 확인한다. 그렇지 않으면
@@ -270,7 +270,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
                     atoms_before = mol_current_check.GetNumHeavyAtoms()
                     atoms_after = mol_new_check.GetNumHeavyAtoms()
                     loss_ratio = 1 - (atoms_after / atoms_before) if atoms_before > 0 else 0
-                    if loss_ratio >= 0.5:
+                    if loss_ratio >= destructive_edit_threshold:
                         failed_attempts.append(
                             f"{candidate_rule}[idx={try_idx}](파괴적 편집 거부: 원자 {loss_ratio:.0%} 손실)"
                         )
@@ -380,7 +380,7 @@ def iterative_fix_loop(smiles: str, max_iterations: int = 10, candidate_idx: int
 def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
                                llm_client=None, llm_model=None, llm_client_type="gemini",
                                max_workers=5, progress=True, use_debate=False,
-                               debate_max_rounds=2):
+                               debate_max_rounds=2, destructive_edit_threshold=0.5):
     """여러 분자에 iterative_fix_loop를 스레드 병렬로 적용.
     LLM API 호출이 병목인 경우(네트워크 대기 시간) 유효한 개선이며,
     화학 계산 로직(iterative_fix_loop 자체)은 전혀 수정하지 않는다.
@@ -405,5 +405,4 @@ def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
             if progress:
                 print(f"[{i+1}/{len(smiles_list)}] {smi[:30]} -> {r['status']}")
     return results
-
 
