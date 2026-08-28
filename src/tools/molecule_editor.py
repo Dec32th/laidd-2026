@@ -143,7 +143,7 @@ def _candidate_order_for_rule(rule_name: str, preferred_idx: int):
 def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
                         llm_client=None, llm_model=None, llm_client_type="gemini",
                         use_failure_memory=True, use_debate=False, debate_max_rounds=2,
-                        destructive_edit_threshold=0.5):
+                        destructive_edit_threshold=0.5, conflict_resolution="greedy"):
     """진단->치환->재평가를 반복.
     핵심: candidate가 '화학적으로 유효(is_valid)'해도 대상 규칙이 실제로
     해소됐는지 재진단(detect_toxicophores)까지 확인한다. 그렇지 않으면
@@ -198,22 +198,26 @@ def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
             problem_reason = problem_decision.get('reason', '')
             ordered_rules = [preferred_rule] + [p['rule_name'] for p in known_problems if p['rule_name'] != preferred_rule]
         else:
-            # 다중 문제 충돌 조정: 각 문제를 먼저 고쳤을 때 남는 전체
-            # toxicophore 수가 가장 적어지는 순서로 정렬(그리디, LLM 미사용).
-            sim_scores = {}
-            for p in known_problems:
-                rn = p['rule_name']
-                try:
-                    trial = propose_fix(current, rn, candidate_idx)
-                    if trial is None or not trial.get('is_valid'):
+            if conflict_resolution == "list_order":
+                problem_reason = "규칙 기반(리스트 순서대로, conflict_resolution=list_order 실험용)"
+                ordered_rules = [p['rule_name'] for p in known_problems]
+            else:
+                # 다중 문제 충돌 조정: 각 문제를 먼저 고쳤을 때 남는 전체
+                # toxicophore 수가 가장 적어지는 순서로 정렬(그리디, LLM 미사용).
+                sim_scores = {}
+                for p in known_problems:
+                    rn = p['rule_name']
+                    try:
+                        trial = propose_fix(current, rn, candidate_idx)
+                        if trial is None or not trial.get('is_valid'):
+                            sim_scores[rn] = 999
+                            continue
+                        remaining = detect_toxicophores(trial['new_smiles'])
+                        sim_scores[rn] = len(remaining)
+                    except Exception:
                         sim_scores[rn] = 999
-                        continue
-                    remaining = detect_toxicophores(trial['new_smiles'])
-                    sim_scores[rn] = len(remaining)
-                except Exception:
-                    sim_scores[rn] = 999
-            ordered_rules = sorted(sim_scores, key=sim_scores.get)
-            problem_reason = f"규칙 기반(충돌 조정: 남는 문제 수 적은 순 - {sim_scores})"
+                ordered_rules = sorted(sim_scores, key=sim_scores.get)
+                problem_reason = f"규칙 기반(충돌 조정: 남는 문제 수 적은 순 - {sim_scores})"
 
         fixed = None
         target_rule = None
@@ -380,7 +384,8 @@ def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
 def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
                                llm_client=None, llm_model=None, llm_client_type="gemini",
                                max_workers=5, progress=True, use_debate=False,
-                               debate_max_rounds=2, destructive_edit_threshold=0.5):
+                               debate_max_rounds=2, destructive_edit_threshold=0.5,
+                               conflict_resolution="greedy"):
     """여러 분자에 iterative_fix_loop를 스레드 병렬로 적용.
     LLM API 호출이 병목인 경우(네트워크 대기 시간) 유효한 개선이며,
     화학 계산 로직(iterative_fix_loop 자체)은 전혀 수정하지 않는다.
@@ -393,6 +398,8 @@ def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
             smi, max_iterations=max_iterations, candidate_idx=candidate_idx,
             llm_client=llm_client, llm_model=llm_model, llm_client_type=llm_client_type,
             use_debate=use_debate, debate_max_rounds=debate_max_rounds,
+            destructive_edit_threshold=destructive_edit_threshold,
+            conflict_resolution=conflict_resolution,
         )
         return smi, r
 
