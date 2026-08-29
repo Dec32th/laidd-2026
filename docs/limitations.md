@@ -47,3 +47,29 @@ stuck으로 끝남. 그리디가 "막다른 골목으로 이어지는 경로"를
 중 진단 시점에 문제가 2개 이상인 분자 자체가 소수) 이 규모 샘플에서
 실질적 개선 효과는 크지 않음(0.33%p). 전체 valid set(1173개)이나
 더 복잡한 분자가 많은 데이터셋에서는 효과가 더 클 수 있음.
+
+
+## Meeko 기반 covalent docking 가능성 조사 — 노트북 56
+
+**조사 결과**: Meeko는 "PDBQT ↔ RDKit 왕복 시 결합차수 손실 없음"을
+공식 지원하며, 이는 노트북 54에서 겪은 원자 매핑 문제(SMILES-PDBQT
+인덱스 불일치, OpenBabel의 결합차수 오추정)를 근본적으로 해결할 수
+있는 기능임을 확인.
+
+**Covalent docking 지원**: Tethered Docking(2점 고정 공유결합) 방식을
+지원 — `--tether_smarts`/`--tether_smarts_indices`로 반응 원자를,
+`--rec_residue`로 표적 잔기를 지정. 예: 시스테인 대상이면
+`--tether_smarts "SCC" --tether_smarts_indices 3 2`.
+
+**전환 시 필요한 작업 (요약)**:
+1. AutoDock Vina → AutoDock-GPU로 도킹 엔진 전환 (Meeko의 covalent
+   모드는 Vina를 지원하지 않음)
+2. 리간드 준비 파이프라인 재구축 — 표적 시스테인 사이드체인을 포함한
+   SDF 파일을 직접 구성해야 함 (지금처럼 SMILES만으로 부족)
+3. ProDy 추가 의존성 설치
+4. mk_prepare_ligand.py/mk_prepare_receptor.py 새 CLI 학습
+
+**결론**: 방향은 옳으나 별도 세션급 작업(엔진 교체+파이프라인 재구축).
+지금 파이프라인(caveat 강화 + 워헤드 반응성 참고표)으로 실질적
+안전장치는 이미 확보되어 있으므로, 시간 여유가 생기면 별도
+프로젝트로 진행하는 것을 다음 후보로 남김.
