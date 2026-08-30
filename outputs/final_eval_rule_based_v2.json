@@ -1,0 +1,9 @@
+{
+  "status_counts": {
+    "success": 874,
+    "stuck": 164,
+    "no_known_fix": 135
+  },
+  "total": 1173,
+  "elapsed_seconds": 25.698564767837524
+}

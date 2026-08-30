@@ -1,0 +1,11 @@
+{
+  "status_counts": {
+    "success": 779,
+    "stuck": 254,
+    "no_known_fix": 139,
+    "max_iterations_reached": 1
+  },
+  "total": 1173,
+  "elapsed_seconds": 1717.4485640525818,
+  "error_count": 0
+}
