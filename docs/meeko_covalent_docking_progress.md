@@ -41,3 +41,52 @@ JUMP AI 2026 공모전(4th JUMP AI competition, 팀명 MorForge)은 예선
 탈락으로 확정됨. 프로젝트는 예선 통과 여부와 무관하게 지속 개선하여
 오픈소스 공개 또는 대학원 진학 포트폴리오로 활용할 계획이었으며,
 이 방향은 그대로 유지. 9월 10일 경희대 ML 교수님과 미팅 예정.
+
+## 결과: Tethered Docking 검증 완료 (성공)
+
+전체 파이프라인(receptor 준비 → autogrid4 → AutoDock-GPU tethered
+docking)이 정상 작동함을 확인. 오시메르티닙(실제 EGFR Cys797 공유결합
+억제제) vs 이타콘산(공유결합 근거 없는 대조군)으로 비교:
+
+| 분자 | Best Inter+Intra Energy (kcal/mol) |
+|---|---|
+| 오시메르티닙 | -5.31 (안정) |
+| 이타콘산 | +7.06 (매우 불안정) |
+
+12.4 kcal/mol의 뚜렷한 차이로 방법의 변별력 확인. 노트북 54에서 실패한
+원자 매핑 문제를 Meeko의 명시적 원자 이름 태깅(REMARK SMILES IDX)으로
+완전히 우회함 — 인덱스 추측이 아니라 Meeko가 보장하는 "결합차수 손실
+없는" 왕복 변환을 그대로 신뢰.
+
+## 알아낸 주요 세부사항 (재현을 위한 기록)
+
+- receptor 준비 시 원본 리간드(YY3 등) 반드시 --delete_residues로 제거
+- 결정구조의 결측 곁사슬은 --allow_bad_res로 자동 처리(Cys797 자체는
+  온전했음)
+- --box_center는 원본 리간드 좌표 평균으로 직접 계산 필요
+  (--box_enveloping 등 대안 있으나 이번엔 수동 계산 사용)
+- GPF 자동생성 시 Si/B 원자타입 관련 파싱 버그 발견 — ligand_types와
+  map 줄을 15개로 정확히 세었는데도 autogrid4가 "14개raa"로 오인식.
+  Si/B 원자가 필요 없는 경우 해당 줄 제거로 우회
+- autogrid4는 apt 별도 패키지(`autogrid`, `autodock`과 분리됨) 설치 필요
+- --lfile에 완전히 빈 파일은 허용 안 됨 — 최소 1원자 더미 PDBQT 필요
+  (기존 유효 PDBQT에서 원자 1줄의 정확한 컬럼 포맷을 복사해 사용하는
+  것이 안전)
+- 도킹 결과(DLG)에서 실제 포즈 파싱 시 Meeko의 PDBQTMolecule.from_file
+  (is_dlg=True)이 이 AutoDock-GPU 버전 출력과 호환 안 됨 — DOCKED:
+  접두어를 직접 제거해 표준 PDBQT로 재구성하는 방식으로 우회
+- Tethered 리간드 PDBQT의 BEGIN_RES 블록은 CA/CB까지만 포함하고 SG는
+  없음 — "거리 계산"이 아니라 "이 결합형태의 에너지"로 검증해야 함
+
+## 다음 단계
+
+1. docking.py에 선택적 기능(예: `try_covalent_tethered_check`)으로
+   통합할지 결정 — 이번엔 Colab 환경 설정(AutoDock-GPU 컴파일,
+   autogrid 설치)이 매 세션 필요해 운영 비용이 상당함을 감안
+2. Michael_acceptor_1 외 다른 워헤드 규칙에도 같은 방식 적용 가능성
+   검토
+3. 통합하지 않더라도, 이 성공 사례 자체를 교수님 미팅에서 "정직한
+   실패 후 재도전으로 해결한 사례"로 제시 가능
+"""
+
+!cd /content/laidd-2026 && git add docs/meeko_covalent_docking_progress.md && git commit -m "Successfully validate Meeko+AutoDock-GPU tethered covalent docking: osimertinib (-5.31 kcal/mol) vs itaconic acid (+7.06 kcal/mol) shows clear discrimination" && git push
