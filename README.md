@@ -7,6 +7,7 @@ Tox21 데이터셋의 분자에서 독성 구조(toxicophore)를 자동 진단�
 
 ## 개요
 
+"LLM을 tool-calling 에이전트로 활용해 도메인 규칙 기반 진단과 결합한 시스템"
 RDKit 규칙 기반 진단 + LLM 기반 토의(proposer-critic) 검증 + 단백질
 도킹/합성용이성 정량 근거를 결합한 다단계 시스템:
 
@@ -74,3 +75,9 @@ docs/limitations.md에 상세 기록. 주요 항목: LLM 판단의 비결정성,
 RDKit, AutoDock Vina, sascorer(RDKit Contrib), ChEMBL/Guide to
 Pharmacology 데이터를 활용. sascorer.py/fpscores.pkl.gz는 외부
 저작물이라 저장소에 포함하지 않고 각 세션에서 다운로드.
+
+## Contact
+
+질문이나 피드백은 언제든 환영합니다.
+- Email: hyekyeong.w@gmail.com
+- GitHub: [@Dec32th](https://github.com/Dec32th)
