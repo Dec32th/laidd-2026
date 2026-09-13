@@ -65,6 +65,12 @@ def _save_cache(cache):
 
 
 def prepare_ligand_pdbqt(smiles, filename, seed=42):
+    """SMILES를 3D 구조로 임베딩(MMFF 최적화)한 뒤 PDB를 거쳐
+    PDBQT로 변환(OpenBabel 사용). AutoDock Vina 입력 형식 준비용.
+
+    Returns:
+        str: 생성된 .pdbqt 파일 경로. 임베딩/변환 실패 시 None.
+    """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
@@ -79,6 +85,18 @@ def prepare_ligand_pdbqt(smiles, filename, seed=42):
 
 
 def run_docking_cli(ligand_pdbqt, receptor_pdbqt, out_prefix, box_center, box_size, exhaustiveness=4):
+    """AutoDock Vina CLI를 서브프로세스로 실행해 도킹을 수행.
+
+    Colab에서 Vina의 Python 바인딩이 커널 크래시를 반복 일으켜
+    CLI 버전으로 전환(2026-08-03 실험 로그 참고). box_center/
+    box_size는 도킹 탐색 공간을 지정하는 좌표/크기(Å 단위).
+    exhaustiveness는 기본값(8)보다 낮은 4로 설정해 안정성을 확보한
+    상태(정밀한 결합친화도보다 방향성 확인 목적).
+
+    Returns:
+        결합 스코어(kcal/mol) 또는 로그 파싱 결과. 타임아웃(180초)
+        또는 로그 파일 미생성 시 None.
+    """
     log_path = f"{out_prefix}_log.txt"
     cmd = [
         VINA_BIN, "--receptor", receptor_pdbqt, "--ligand", ligand_pdbqt,

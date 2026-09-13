@@ -16,6 +16,13 @@ _FAILURE_MEMORY = {}
 
 
 def clear_failure_memory():
+    """실패 메모리(_FAILURE_MEMORY)를 초기화.
+
+    iterative_fix_loop는 같은 세션 내에서 (분자상태, 규칙) 조합이
+    이미 propose_fix에 실패했으면 재시도를 건너뛰는 캐시를 쓰는데,
+    치환 라이브러리를 수정한 뒤에는 이 캐시가 오래된 정보를 담고
+    있을 수 있으므로 반드시 이 함수로 초기화해야 한다.
+    """
     global _FAILURE_MEMORY
     _FAILURE_MEMORY = {}
 
@@ -29,6 +36,17 @@ def _check_and_match(part_smiles, problem_pattern, pattern_size):
 
 
 def find_core_and_target(smiles: str, rule_name: str):
+    """rdMMPA로 분자를 1회 절단(matched molecular pair 방식)해,
+    문제 구조(toxicophore)를 포함한 조각을 core, 나머지를 target으로
+    분리.
+
+    분자를 여러 방식으로 자른 조각 중, 해당 규칙의 problem_smarts와
+    정확히 일치하는(원자 수까지 일치) 조각을 찾아 반환한다.
+
+    Returns:
+        dict: core/target SMILES 등을 담은 딕셔너리. 규칙 정보가
+        없거나 SMILES 파싱 실패, 매치되는 절단 지점이 없으면 None.
+    """
     info = get_replacement_candidates(rule_name)
     if info is None:
         return None
@@ -84,6 +102,15 @@ def find_core_and_target(smiles: str, rule_name: str):
 
 
 def reassemble_molecule(core_smiles: str, rule_name: str, candidate_idx: int = 0):
+    """find_core_and_target으로 분리한 core에, 치환 라이브러리의
+    candidate 구조를 molzip으로 다시 이어붙여 최종 분자를 재조립.
+
+    candidate_idx는 REPLACEMENT_LIBRARY의 candidates 리스트에서
+    몇 번째 후보를 쓸지 지정(우선순위 재시도에 쓰임).
+
+    Returns:
+        str: 재조립된 분자의 canonical SMILES. 실패 시 None.
+    """
     info = get_replacement_candidates(rule_name)
     if info is None or candidate_idx >= len(info['candidates']):
         return None
@@ -111,6 +138,18 @@ def reassemble_molecule(core_smiles: str, rule_name: str, candidate_idx: int = 0
 
 
 def propose_fix(smiles: str, rule_name: str, candidate_idx: int = 0):
+    """주어진 분자의 특정 toxicophore(rule_name)를 치환 라이브러리
+    기준으로 한 단계 고친 candidate를 생성.
+
+    edit_method가 "atom_edit"이면 atom_editor.py의 원자 단위 편집
+    (환경변화 없이 원자/결합만 바꾸는 방식)을 쓰고, 그 외에는
+    find_core_and_target + reassemble_molecule로 절단-재조립
+    방식을 쓴다. 이 두 방식의 선택은 각 규칙의 화학적 특성에 따라
+    REPLACEMENT_LIBRARY에서 미리 지정되어 있다.
+
+    Returns:
+        치환 결과(새 SMILES 등을 담은 dict). 실패 시 None.
+    """
     info = get_replacement_candidates(rule_name)
     if info is None:
         return None
@@ -126,6 +165,14 @@ def propose_fix(smiles: str, rule_name: str, candidate_idx: int = 0):
 
 
 def canonicalize(smiles: str):
+    """SMILES를 RDKit의 canonical 형태로 정규화.
+
+    같은 분자를 다른 표기로 쓴 SMILES를 비교하거나 중복 제거할 때
+    사용(예: 실패 메모리 캐시 키, 회귀테스트의 분자 동일성 비교).
+
+    Returns:
+        str: canonical SMILES. 파싱 실패 시 None.
+    """
     mol = Chem.MolFromSmiles(smiles)
     return Chem.MolToSmiles(mol) if mol else None
 

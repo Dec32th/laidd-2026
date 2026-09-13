@@ -54,6 +54,14 @@ def visualize_fix_process(loop_result, mols_per_row=3, sub_img_size=(320, 320)):
 
 
 def get_3d_mol(smiles, random_seed=42):
+    """SMILES를 3D 좌표가 포함된 RDKit Mol 객체로 변환
+    (수소 추가 + ETKDG 임베딩 + MMFF 힘장 최적화).
+
+    show_3d_shape_comparison 등에서 3D 형태 비교의 입력으로 쓰인다.
+
+    Returns:
+        Mol: 3D 좌표가 포함된 RDKit Mol 객체. 임베딩 실패 시 None.
+    """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
