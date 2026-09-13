@@ -4,6 +4,18 @@
 
 
 def generate_audit_report(result, original_smiles=None):
+    """iterative_fix_loop/batch_iterative_fix_loop의 결과(result)를
+    받아, 사람이 읽을 수 있는 텍스트 감사추적 리포트를 생성.
+
+    각 단계에서 진단된 문제, 고친 규칙과 판단 근거, 토의(debate)가
+    있었다면 그 라운드별 승인/반려/에스컬레이트 기록까지 순서대로
+    풀어서 보여준다. 최종 판정뿐 아니라 반려/에스컬레이트된 시도의
+    근거도 빠짐없이 포함하는 것이 핵심(노트북 51에서 이 공백을
+    발견하고 수정).
+
+    Returns:
+        str: 사람이 바로 읽을 수 있는 리포트 텍스트.
+    """
     lines = []
     lines.append("=" * 60)
     lines.append("치환 감사추적 리포트")

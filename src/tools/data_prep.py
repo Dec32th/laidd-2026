@@ -17,6 +17,17 @@ def _smiles_to_ecfp(smiles):
     return np.array(fp)
 
 def load_tox21_clean(test_size=0.3, valid_ratio=0.5, random_state=42):
+    """Tox21 데이터셋을 로드하고 train/valid/test로 분할.
+
+    SMILES 파싱 실패 분자는 제외하고, ECFP 지문(fingerprint)과
+    12개 assay 레이블(y), 결측 마스크(w)를 함께 준비한다.
+    test_size는 전체 중 (valid+test)에 할당할 비율, valid_ratio는
+    그 중 test로 다시 나눌 비율(기본: valid/test 각 절반씩).
+
+    Returns:
+        dict: smiles_train/valid/test, X_*, y_*, w_*, invalid_smiles
+        등을 담은 딕셔너리.
+    """
     df = pd.read_csv(TOX21_URL)
     df['valid'] = df['smiles'].apply(_is_valid_smiles)
 

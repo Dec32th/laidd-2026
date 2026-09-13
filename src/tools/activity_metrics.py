@@ -9,6 +9,17 @@ from models.tox_baseline import smiles_to_fp_bitvect
 
 
 def compute_activity_preservation_metrics(original_smiles, fixed_smiles, sascorer_module):
+    """치환 전/후 분자의 활성보존 관련 지표를 계산.
+
+    2D 유사도(Tanimoto), 3D 형태 유사도(회전반경), 약물유사성(QED),
+    지용성(LogP), 합성용이성(SA Score)을 원본/치환후 각각 계산해 반환.
+    sascorer_module은 RDKit Contrib의 sascorer를 호출부에서 주입받는다
+    (매 세션 다운로드해서 쓰는 외부 모듈이라 의존성을 분리).
+
+    Returns:
+        dict: tanimoto, qed_o/f, logp_o/f, sa_o/f, shape 관련 키를 포함.
+        SMILES 파싱 실패 시 None.
+    """
     mol_o = Chem.MolFromSmiles(original_smiles)
     mol_f = Chem.MolFromSmiles(fixed_smiles)
     if mol_o is None or mol_f is None:
@@ -43,6 +54,17 @@ def compute_activity_preservation_metrics(original_smiles, fixed_smiles, sascore
 
 
 def classify_activity_risk_v3(metrics):
+    """compute_activity_preservation_metrics의 결과를 받아 활성보존
+    위험도를 판정.
+
+    2D 연결성(Tanimoto>=0.5), 3D 형태(회전반경 변화<15%), QED 변화
+    (<0.1), LogP 변화(<1.0) 등 여러 지표를 개별 임계값으로 확인하고,
+    사람이 읽을 수 있는 세부 설명(details)과 경고 목록(warnings)을
+    함께 반환. metrics가 None이면 "판정 불가"를 반환한다.
+
+    Returns:
+        dict: verdict, details, warnings 키를 포함.
+    """
     if metrics is None:
         return {"verdict": "판정 불가", "details": []}
     details, warnings = [], []
