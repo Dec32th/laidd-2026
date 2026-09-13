@@ -1,0 +1,31 @@
+# ToxGuard 의존성
+# Colab 환경 기준으로 정리됨. rdkit, sascorer는 별도 설치 방식 참고(주석 확인).
+
+rdkit>=2023.9.1
+chembl_webresource_client
+fuzzywuzzy
+python-Levenshtein
+PyTDC
+PyYAML
+tqdm
+requests
+openai
+pytest
+numpy
+pandas
+scikit-learn
+
+# covalent docking(선택, Meeko 기반) 재현 시에만 필요
+meeko
+prody
+gemmi
+
+# 시스템 레벨 의존성(pip 아님, apt/직접설치 필요):
+# - openbabel (apt-get install openbabel)
+# - AutoDock Vina 1.2.5 바이너리 (https://github.com/ccsb-scripps/AutoDock-Vina/releases)
+# - AutoDock-GPU (소스 컴파일 필요, covalent docking 재현 시에만) https://github.com/ccsb-scripps/AutoDock-GPU
+# - autogrid (apt-get install autogrid, covalent docking 재현 시에만)
+
+# RDKit Contrib SA Score (pip 패키지 아님, 별도 다운로드 필요):
+# https://raw.githubusercontent.com/rdkit/rdkit/master/Contrib/SA_Score/sascorer.py
+# https://raw.githubusercontent.com/rdkit/rdkit/master/Contrib/SA_Score/fpscores.pkl.gz
