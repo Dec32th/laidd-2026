@@ -52,6 +52,7 @@ _CACHE_PATH = "outputs/docking_cache.json"
 
 
 def _load_cache():
+    """도킹 결과 캐시(JSON)를 로드. 파일이 없으면 빈 dict 반환."""
     if os.path.exists(_CACHE_PATH):
         with open(_CACHE_PATH) as f:
             return json.load(f)
@@ -59,6 +60,7 @@ def _load_cache():
 
 
 def _save_cache(cache):
+    """도킹 결과 캐시를 JSON 파일로 저장."""
     os.makedirs("outputs", exist_ok=True)
     with open(_CACHE_PATH, "w") as f:
         json.dump(cache, f, ensure_ascii=False, indent=2)

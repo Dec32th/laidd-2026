@@ -52,6 +52,8 @@ def _call_llm(client, model_name, prompt, client_type="gemini"):
 
 
 def _parse_json_response(text, fallback):
+    """LLM 응답에서 JSON을 추출/파싱. 마크다운 코드블록(```json)으로
+    감싸져 온 경우를 벗겨내고, 파싱 실패 시 fallback을 반환."""
     text = text.strip()
     if text.startswith('```'):
         text = text.split('```')[1]

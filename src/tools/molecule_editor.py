@@ -7,6 +7,11 @@ from src.tools.agent import (ask_llm_which_problem_to_fix, ask_llm_which_candida
                                   ask_llm_debate_fix, ask_llm_debate_fix_consistent, should_debate)
 
 def _library_version_hash():
+    """REPLACEMENT_LIBRARY 현재 내용의 짧은 해시.
+
+    라이브러리를 수정한 뒤에도 예전 캐시(실패 메모리 등)가 재사용되는
+    것을 막기 위한 버전 키로 쓰인다(노트북 캐시 버전관리 버그 수정 시 도입).
+    """
     from src.tools.replacement_library import get_replacement_candidates
     lib = get_replacement_candidates.__globals__['REPLACEMENT_LIBRARY']
     content_str = str(sorted(lib.items()))
@@ -28,6 +33,8 @@ def clear_failure_memory():
 
 
 def _check_and_match(part_smiles, problem_pattern, pattern_size):
+    """절단된 조각(part_smiles)이 problem_pattern과 정확히 일치하는지
+    (원자 수까지 일치) 확인. find_core_and_target의 내부 헬퍼."""
     part_mol = Chem.MolFromSmiles(part_smiles.replace('[*:1]', 'C').replace('[*:2]', 'C'))
     if part_mol is None or not part_mol.HasSubstructMatch(problem_pattern):
         return False
@@ -178,6 +185,9 @@ def canonicalize(smiles: str):
 
 
 def _candidate_order_for_rule(rule_name: str, preferred_idx: int):
+    """선호 candidate_idx를 맨 앞에 두고 나머지 후보들을 이어붙인
+    시도 순서를 생성. 우선순위 후보가 실패했을 때 다른 후보로
+    자동 재시도하는 로직(agent_robustness 개선)에서 사용."""
     info = get_replacement_candidates(rule_name)
     if info is None:
         return [preferred_idx]

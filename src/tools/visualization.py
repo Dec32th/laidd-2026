@@ -3,6 +3,7 @@ from rdkit.Chem import Draw, AllChem
 
 
 def _truncate(text, max_len=60):
+    """긴 텍스트를 max_len 길이로 잘라 "..."을 붙임. 시각화 라벨용."""
     if text is None:
         return ""
     return text if len(text) <= max_len else text[:max_len] + "..."

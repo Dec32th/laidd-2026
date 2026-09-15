@@ -8,6 +8,8 @@ from rdkit.Chem import Descriptors, QED, FilterCatalog
 
 
 def _lipinski_violations(mol):
+    """Lipinski Rule of Five 위반 개수(분자량/LogP/수소공여체/
+    수소수용체 4개 기준 중 위반한 항목 수)를 반환."""
     violations = 0
     if Descriptors.MolWt(mol) > 500: violations += 1
     if Descriptors.MolLogP(mol) > 5: violations += 1
@@ -17,6 +19,7 @@ def _lipinski_violations(mol):
 
 
 def _pains_pass(mol, catalog):
+    """PAINS(범용 방해구조) 필터를 통과하는지 여부(통과=True)."""
     return not catalog.HasMatch(mol)
 
 

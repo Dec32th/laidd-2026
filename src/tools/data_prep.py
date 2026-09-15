@@ -9,9 +9,11 @@ TOX21_URL = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/tox21.csv.
 _generator = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
 
 def _is_valid_smiles(smiles):
+    """RDKit으로 파싱 가능한 SMILES인지 확인."""
     return Chem.MolFromSmiles(smiles) is not None
 
 def _smiles_to_ecfp(smiles):
+    """SMILES를 ECFP(Morgan) 지문 numpy 배열로 변환."""
     mol = Chem.MolFromSmiles(smiles)
     fp = _generator.GetFingerprintAsNumPy(mol)
     return np.array(fp)

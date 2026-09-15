@@ -2,6 +2,9 @@ from rdkit import Chem
 from rdkit.Chem import FilterCatalog
 
 def _build_catalog():
+    """PAINS+BRENK RDKit FilterCatalog를 생성.
+
+    모듈 로드 시 한 번만 호출되어 전역 _catalog로 캐싱된다."""
     params = FilterCatalog.FilterCatalogParams()
     params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.PAINS)
     params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.BRENK)
