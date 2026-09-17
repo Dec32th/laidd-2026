@@ -26,10 +26,11 @@ def visualize_fix_process(loop_result, mols_per_row=3, sub_img_size=(320, 320)):
         mols.append(mol)
 
         if h['step'] == 0:
-            legend = "Step 0 (원본)"
+            legend = "Step 0 (Original)"
         else:
-            reason = _truncate(h.get('candidate_reason', ''), 50)
-            legend = f"Step {h['step']}: {h['fixed_rule']}\n-> {h['candidate_used']}\n({reason})"
+            rule_short = _truncate(h['fixed_rule'], 20)
+            cand_short = _truncate(h['candidate_used'], 25)
+            legend = f"Step {h['step']}: {rule_short}\n-> {cand_short}"
 
             rule_info = get_replacement_candidates(h['fixed_rule'])
             if rule_info:
