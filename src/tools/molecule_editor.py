@@ -201,7 +201,8 @@ def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
                         llm_client=None, llm_model=None, llm_client_type="gemini",
                         use_failure_memory=True, use_debate=False, debate_max_rounds=2,
                         destructive_edit_threshold=0.5, conflict_resolution="greedy",
-                        use_consistent_debate=False, debate_n_repeats=3):
+                        use_consistent_debate=False, debate_n_repeats=3,
+                        use_llm_priority=False, reverse_tie_order=False, _tie_retry_done=False):
     """진단->치환->재평가를 반복.
     핵심: candidate가 '화학적으로 유효(is_valid)'해도 대상 규칙이 실제로
     해소됐는지 재진단(detect_toxicophores)까지 확인한다. 그렇지 않으면
@@ -250,7 +251,7 @@ def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
             return {"status": "no_known_fix", "final_smiles": current, "history": history,
                     "skipped_rules": skipped_rules, "skipped_details": skipped_details}
 
-        if llm_client is not None:
+        if use_llm_priority and llm_client is not None:
             problem_decision = ask_llm_which_problem_to_fix(llm_client, llm_model, current, problems, client_type=llm_client_type)
             preferred_rule = problem_decision['rule_name']
             problem_reason = problem_decision.get('reason', '')
@@ -274,8 +275,12 @@ def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
                         sim_scores[rn] = len(remaining)
                     except Exception:
                         sim_scores[rn] = 999
-                ordered_rules = sorted(sim_scores, key=sim_scores.get)
-                problem_reason = f"규칙 기반(충돌 조정: 남는 문제 수 적은 순 - {sim_scores})"
+                rule_names_for_sort = list(sim_scores.keys())
+                if reverse_tie_order:
+                    rule_names_for_sort = list(reversed(rule_names_for_sort))
+                ordered_rules = sorted(rule_names_for_sort, key=sim_scores.get)
+                problem_reason = f"규칙 기반(충돌 조정: 남는 문제 수 적은 순 - {sim_scores}" \
+                                  f"{', tie-break 역순' if reverse_tie_order else ''})"
 
         fixed = None
         target_rule = None
@@ -425,6 +430,20 @@ def iterative_fix_loop(smiles, max_iterations=10, candidate_idx=0,
                               f"({failed_attempts}) 모두 실행에 실패했습니다(memory-skip 표시는 이전에 "
                               f"실패했던 것으로 확인되어 재시도 없이 건너뛴 항목). 흔한 원인: 유기금속/무기염 "
                               f"등 특수 화학종, 고리 구조와의 예상치 못한 충돌, 또는 원자가 계산 오류입니다.")
+            if not _tie_retry_done and not use_llm_priority and llm_client is None and conflict_resolution == "greedy":
+                retry_result = iterative_fix_loop(
+                    smiles, max_iterations=max_iterations, candidate_idx=candidate_idx,
+                    llm_client=llm_client, llm_model=llm_model, llm_client_type=llm_client_type,
+                    use_failure_memory=use_failure_memory, use_debate=use_debate,
+                    debate_max_rounds=debate_max_rounds,
+                    destructive_edit_threshold=destructive_edit_threshold,
+                    conflict_resolution=conflict_resolution,
+                    use_consistent_debate=use_consistent_debate, debate_n_repeats=debate_n_repeats,
+                    use_llm_priority=use_llm_priority, reverse_tie_order=not reverse_tie_order,
+                    _tie_retry_done=True,
+                )
+                if retry_result['status'] == 'success':
+                    return retry_result
             return {"status": "stuck", "reason": f"시도한 규칙/candidate {failed_attempts} 모두 치환 실패",
                     "reason_detail": reason_detail,
                     "final_smiles": current, "history": history,
@@ -457,7 +476,7 @@ def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
                                max_workers=5, progress=True, use_debate=False,
                                debate_max_rounds=2, destructive_edit_threshold=0.5,
                                conflict_resolution="greedy", use_consistent_debate=False,
-                               debate_n_repeats=3):
+                               debate_n_repeats=3, use_llm_priority=False):
     """여러 분자에 iterative_fix_loop를 스레드 병렬로 적용.
     LLM API 호출이 병목인 경우(네트워크 대기 시간) 유효한 개선이며,
     화학 계산 로직(iterative_fix_loop 자체)은 전혀 수정하지 않는다.
@@ -474,6 +493,7 @@ def batch_iterative_fix_loop(smiles_list, max_iterations=10, candidate_idx=0,
             conflict_resolution=conflict_resolution,
             use_consistent_debate=use_consistent_debate,
             debate_n_repeats=debate_n_repeats,
+            use_llm_priority=use_llm_priority,
         )
         return smi, r
 
