@@ -622,16 +622,18 @@ REPLACEMENT_LIBRARY = {
     },
     "phosphor": {
         "edit_method": "atom_edit",
-        "problem_smarts": "[OX2][PX4](=[OX1])([OX2])[OX2]",
+        "problem_smarts": "[OX2H0][PX4](=[OX1])([OX1,OX2])[OX2H0]",
         "candidates": [
-            {"edit_type": "cleave_bond", "cleave_pair_in_pattern": (1, 4),
-             "name": "diester + phenol/alcohol (one ester bond cleaved)",
+            {"edit_type": "cleave_bond_add_oh", "cleave_pair_in_pattern": (1, 4),
+             "hetero_idx_in_pattern": 1,
+             "name": "diester + phenol/alcohol (one ester bond hydrolyzed, OH added to P)",
              "rationale": "유기인산 트리에스터(트리아릴/트리알킬 포스페이트)는 아세틸콜린"
                           "에스터라제(AChE) 억제를 통한 신경독성 메커니즘이 잘 알려진 "
                           "구조로(유기인계 살충제·신경작용제의 공통 골격), 다중 에스터 "
                           "결합이 반응성/생체이용률에 기여함. 에스터 결합 하나를 가수분해로 "
-                          "끊어 반응성을 낮춤 (검증 필요, 인 원자에 남은 나머지 에스터는 "
-                          "추가 규칙 필요 가능)"},
+                          "끊고, 물이 인 원자에 부가되어 P-OH가 남는 실제 가수분해 산물 "
+                          "형태로 반응성을 낮춤. 남은 에스터가 있으면 같은 규칙이 재적용되어 "
+                          "순차적으로 더 해소됨"},
         ],
     },
 }

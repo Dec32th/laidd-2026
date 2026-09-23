@@ -186,6 +186,32 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         for idx in (idx1, idx2):
             rwmol.GetAtomWithIdx(idx).SetNoImplicit(False)
 
+    elif edit_type == "cleave_bond_add_oh":
+        # cleave_bond와 달리, 가수분해로 끊어지는 쪽(hetero_idx_in_pattern,
+        # 보통 P/S 등 헤테로원자)에는 물의 OH가 새로 결합한다고 보고 산소를
+        # 명시적으로 추가한다. 반대쪽(leaving_idx_in_pattern, 보통 O-C의 C측
+        # 알코올/페놀이 되는 쪽)은 기존 cleave_bond처럼 암묵적 수소로 채움.
+        pair = candidate["cleave_pair_in_pattern"]
+        idx1 = match[pair[0]]
+        idx2 = match[pair[1]]
+        bond = rwmol.GetBondBetweenAtoms(idx1, idx2)
+        if bond is None:
+            return None
+        rwmol.RemoveBond(idx1, idx2)
+
+        hetero_key = candidate.get("hetero_idx_in_pattern")
+        hetero_idx = match[hetero_key] if hetero_key is not None else idx1
+        leaving_idx = idx2 if hetero_idx == idx1 else idx1
+
+        rwmol.GetAtomWithIdx(leaving_idx).SetNoImplicit(False)
+
+        new_o_idx = rwmol.AddAtom(Chem.Atom(8))
+        rwmol.AddBond(hetero_idx, new_o_idx, Chem.BondType.SINGLE)
+        rwmol.GetAtomWithIdx(hetero_idx).SetNoImplicit(False)
+        new_o_atom = rwmol.GetAtomWithIdx(new_o_idx)
+        new_o_atom.SetNoImplicit(False)
+        new_o_atom.SetNumExplicitHs(1)
+
     elif edit_type == "open_epoxide":
         pair = candidate["break_pair_in_pattern"]
         idx_o = match[pair[0]]
@@ -399,7 +425,7 @@ def apply_atom_edit_from_rule(smiles: str, rule_name: str, candidate_idx: int = 
         allow_counterion = candidate.get("allow_counterion", False)
         allow_aromatic_zero_h = candidate.get("allow_aromatic_zero_h", False)
 
-        if edit_type != "cleave_bond" and not allow_counterion and '.' in new_smiles:
+        if edit_type not in ("cleave_bond", "cleave_bond_add_oh") and not allow_counterion and '.' in new_smiles:
             is_valid = False
         for atom in check_mol.GetAtoms():
             if allow_aromatic_zero_h and atom.GetIsAromatic() and atom.GetSymbol() == 'N':
